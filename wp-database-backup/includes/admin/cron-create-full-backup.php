@@ -5,9 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**********************************
  * Cron schedule for full backup
  **********************************/
-add_action( 'init','wp_db_fullbackup_scheduler_activation');
+add_action( 'init','wpdbbkp_fullbackup_scheduler_activation');
 
- function wp_db_fullbackup_scheduler_activation() {
+ function wpdbbkp_fullbackup_scheduler_activation() {
 	$options = get_option( 'wp_db_backup_options' );
 	if ( ! wp_next_scheduled( 'wpdbkup_event_fullbackup' )) {
 		if(  true === isset( $options['enable_autobackups'] ) ){
@@ -42,7 +42,7 @@ add_action( 'wpdbkup_event_fullbackup', 'wpdbbkp_cron_backup' );
 
 add_action( 'wpdbbkp_backup_files_cron', 'wpdbbkp_backup_files_cron_with_resume' );
 
-function wp_db_fullbackup_add_cron_schedules($schedules){
+function wpdbbkp_fullbackup_add_cron_schedules($schedules){
     if(!isset($schedules["ten_minutes"])){
         $schedules["ten_minutes"] = array(
             'interval' => 10*60,
@@ -56,7 +56,7 @@ function wp_db_fullbackup_add_cron_schedules($schedules){
     return $schedules;
 }
 
-add_filter('cron_schedules','wp_db_fullbackup_add_cron_schedules');
+add_filter('cron_schedules','wpdbbkp_fullbackup_add_cron_schedules');
 
 if ( ! wp_next_scheduled( 'wpdbbkp_backup_files_cron' ) ) {
     if ( wpdbbkp_should_bg_cron_run() ) {
@@ -672,15 +672,15 @@ if(!function_exists('wpdbbkp_cron_files_backup')){
 				                    }
 
 				                    // Excludes
-				                    if ($excludes && preg_match('(' . $excludes . ')', str_ireplace(trailingslashit($wpdbbkp_admin_class_obj->get_root()), '', conform_dir($file->getPathname())))){
+				                    if ($excludes && preg_match('(' . $excludes . ')', str_ireplace(trailingslashit($wpdbbkp_admin_class_obj->get_root()), '', wpdbbkp_conform_dir($file->getPathname())))){
 				                        continue;
 				                    }
 
 				                    if ($file->isDir()){
-				                        $zip->addEmptyDir(trailingslashit(str_ireplace(trailingslashit($wpdbbkp_admin_class_obj->get_root()), '', conform_dir($file->getPathname()))));
+				                        $zip->addEmptyDir(trailingslashit(str_ireplace(trailingslashit($wpdbbkp_admin_class_obj->get_root()), '', wpdbbkp_conform_dir($file->getPathname()))));
 				                    }
 				                   elseif ($file->isFile()) {
-										$relative_path = str_ireplace(trailingslashit($wpdbbkp_admin_class_obj->get_root()), '', conform_dir($file->getPathname()));
+										$relative_path = str_ireplace(trailingslashit($wpdbbkp_admin_class_obj->get_root()), '', wpdbbkp_conform_dir($file->getPathname()));
 										$zip->addFile($file->getPathname(), $relative_path);
 			
 										$logMessage .= "\n Added File: " . $file->getPathname();
@@ -804,8 +804,8 @@ if(!function_exists('wpdbbkp_cron_execute_file_backup_else')){
 	}
 }
 
-if(!function_exists('conform_dir')){
-	function conform_dir($dir, $recursive = false) {
+if(!function_exists('wpdbbkp_conform_dir')){
+	function wpdbbkp_conform_dir($dir, $recursive = false) {
 	    // Assume empty dir is root
 	    if (!$dir)
 	        $dir = '/';
@@ -819,8 +819,8 @@ if(!function_exists('conform_dir')){
 	        $dir = untrailingslashit($dir);
 
 	    // Carry on until completely normalized
-	    if (!$recursive && conform_dir($dir, true) != $dir)
-	        return conform_dir($dir);
+	    if (!$recursive && wpdbbkp_conform_dir($dir, true) != $dir)
+	        return wpdbbkp_conform_dir($dir);
 
 	    return (string) $dir;
 	}
@@ -940,11 +940,11 @@ function wpdbbkp_backup_completed_notification($args){
 				$filesize                =  esc_html($args[3]);
 				$site_url               = site_url();
 				$log_message_attachment = '';
-				$message                = '';
+				$wpdbbkp_message = '';
 
 				require_once( WPDB_PATH.'includes/admin/Destination/Email/template-email-notification-bg.php' );
 				$headers                = array( 'Content-Type: text/html; charset=UTF-8' );
-				wp_mail( $to, $subject, $message, $headers );
+				wp_mail( $to, $subject, $wpdbbkp_message, $headers );
 			}
 }
 

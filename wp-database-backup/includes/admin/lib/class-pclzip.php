@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 // phpcs:ignoreFile -- third party library
 // --------------------------------------------------------------------------------
 // PhpConcept Library - Zip Module 2.8.2

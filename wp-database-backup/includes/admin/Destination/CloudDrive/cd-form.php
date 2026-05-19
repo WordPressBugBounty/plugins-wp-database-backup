@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$update_msg = '';
+$wpdbbkp_update_msg = '';
 if ( true === isset( $_POST['wpdb_cd_s3'] ) && 'Y' === $_POST['wpdb_cd_s3'] ) {
 	// Validate that the contents of the form request came from the current site and not somewhere else added 21-08-15 V.3.4.
 	if ( ! isset( $_POST['wpdbbackup_update_cd_setting'] ) ) {
@@ -20,7 +20,7 @@ if ( true === isset( $_POST['wpdb_cd_s3'] ) && 'Y' === $_POST['wpdb_cd_s3'] ) {
 	}
 
 	if ( true === isset( $_POST['wpdb_clouddrive_token'] ) ) {
-		update_option( 'wpdb_clouddrive_token', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_clouddrive_token'] ) ) ), false );
+		update_option( 'wpdb_clouddrive_token', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_clouddrive_token'] ) ) ), false );
 	}
 	
 	if ( isset( $_POST['wp_db_backup_destination_cd'] ) ) {
@@ -29,7 +29,7 @@ if ( true === isset( $_POST['wpdb_cd_s3'] ) && 'Y' === $_POST['wpdb_cd_s3'] ) {
 		update_option( 'wp_db_backup_destination_cd', 0 , false);
 	}
 	// Put a "settings updated" message on the screen.
-	$update_msg = esc_html__('Your BackupforWP Cloud backup setting has been saved.' , 'wpdbbkp');
+	$wpdbbkp_update_msg = esc_html__('Your BackupforWP Cloud backup setting has been saved.' , 'wpdbbkp');
 }
 $wpdb_clouddrive_token = get_option( 'wpdb_clouddrive_token',null);
 
@@ -53,8 +53,8 @@ if(!empty($wpdb_clouddrive_token))
 	<div id="collapsebb" class="panel-collapse collapse">
 		<div class="panel-body">
 			<?php
-			if($update_msg){
-				echo '<div class="updated"><p><strong>'.esc_html( $update_msg ).'</strong></p></div>';
+			if($wpdbbkp_update_msg){
+				echo '<div class="updated"><p><strong>'.esc_html( $wpdbbkp_update_msg ).'</strong></p></div>';
 			}
 			?>
 			<p> <?php echo esc_html__('Back up WordPress database to Backup for WP Cloud Backup.', 'wpdbbkp') ?></p>

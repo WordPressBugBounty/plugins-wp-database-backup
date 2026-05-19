@@ -1,4 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
+// phpcs:ignoreFile -- third party library
 /*
  * Copyright 2010 Google Inc.
  *

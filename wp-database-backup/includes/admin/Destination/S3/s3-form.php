@@ -8,7 +8,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
-$update_msg = '';
+$wpdbbkp_update_msg = '';
 if ( true === isset( $_POST['wpdb_amazon_s3'] ) && 'Y' === $_POST['wpdb_amazon_s3'] ) {
 	// Validate that the contents of the form request came from the current site and not somewhere else added 21-08-15 V.3.4.
 	if ( ! isset( $_POST['wpdbbackup_update_amazon_setting'] ) ) {
@@ -20,13 +20,13 @@ if ( true === isset( $_POST['wpdb_amazon_s3'] ) && 'Y' === $_POST['wpdb_amazon_s
 
 	// Save the posted value in the database.
 	if ( true === isset( $_POST['wpdb_dest_amazon_s3_bucket'] ) ) {
-		update_option( 'wpdb_dest_amazon_s3_bucket', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_amazon_s3_bucket'] ) ) ), false );
+		update_option( 'wpdb_dest_amazon_s3_bucket', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_amazon_s3_bucket'] ) ) ), false );
 	}
 	if ( true === isset( $_POST['wpdb_dest_amazon_s3_bucket_key'] ) ) {
-		update_option( 'wpdb_dest_amazon_s3_bucket_key', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_amazon_s3_bucket_key'] ) ) ) , false);
+		update_option( 'wpdb_dest_amazon_s3_bucket_key', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_amazon_s3_bucket_key'] ) ) ) , false);
 	}
 	if ( true === isset( $_POST['wpdb_dest_amazon_s3_bucket_secret'] ) ) {
-		update_option( 'wpdb_dest_amazon_s3_bucket_secret', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_amazon_s3_bucket_secret'] ) ) ), false );
+		update_option( 'wpdb_dest_amazon_s3_bucket_secret', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_amazon_s3_bucket_secret'] ) ) ), false );
 	}
 	if ( isset( $_POST['wp_db_backup_destination_s3'] ) ) {
 		update_option( 'wp_db_backup_destination_s3', 1 , false);
@@ -34,15 +34,15 @@ if ( true === isset( $_POST['wpdb_amazon_s3'] ) && 'Y' === $_POST['wpdb_amazon_s
 		update_option( 'wp_db_backup_destination_s3', 0 , false);
 	}
 	// Put a "settings updated" message on the screen.
-	$update_msg = '<div class="updated"><p><strong>Your amazon s3 setting has been saved.</strong></p></div>';
+	$wpdbbkp_update_msg = '<div class="updated"><p><strong>Your amazon s3 setting has been saved.</strong></p></div>';
 }
-$wp_db_backup_destination_s3 = get_option( 'wp_db_backup_destination_s3',0);
+$wpdbbkp_destination_s3 = get_option( 'wp_db_backup_destination_s3', 0 );
 $wpdb_dest_amazon_s3_bucket = get_option( 'wpdb_dest_amazon_s3_bucket',null);
 $wpdb_dest_amazon_s3_bucket_key = get_option( 'wpdb_dest_amazon_s3_bucket_key',null);
 $wpdb_dest_amazon_s3_bucket_secret = get_option( 'wpdb_dest_amazon_s3_bucket_secret',null);
 
 $wpdbbkp_amazon_s3_status			=	'<label><b>'.esc_html__('Status','wpdbbkp').'</b>: '.esc_html__('Not Configured','wpdbbkp').' </label> ';
-if($wp_db_backup_destination_s3==1 && !empty($wpdb_dest_amazon_s3_bucket) && !empty($wpdb_dest_amazon_s3_bucket_key) && !empty($wpdb_dest_amazon_s3_bucket_secret))
+if ( $wpdbbkp_destination_s3 == 1 && ! empty( $wpdb_dest_amazon_s3_bucket ) && ! empty( $wpdb_dest_amazon_s3_bucket_key ) && ! empty( $wpdb_dest_amazon_s3_bucket_secret ) )
 {
 	$wpdbbkp_amazon_s3_status='<label><b>'.esc_html__('Status','wpdbbkp').'</b>: <span class="dashicons dashicons-yes-alt" style="color:green;font-size:16px" title="'.esc_attr__('Destination enabled','wpdbbkp').'"></span><span class="configured">'.esc_html__('Configured','wpdbbkp').' </span> </label> ';
 }
@@ -60,7 +60,7 @@ if($wp_db_backup_destination_s3==1 && !empty($wpdb_dest_amazon_s3_bucket) && !em
 	<div id="collapseAmazon" class="panel-collapse collapse">
 		<div class="panel-body">
 			<?php
-			echo esc_html( $update_msg );
+			echo esc_html( $wpdbbkp_update_msg );
 
 			if ( get_option( 'wpdb_dest_amazon_s3_bucket_key' ) && get_option( 'wpdb_dest_amazon_s3_bucket_secret' ) ) {
 
@@ -70,11 +70,11 @@ if($wp_db_backup_destination_s3==1 && !empty($wpdb_dest_amazon_s3_bucket) && !em
 					}
 
 					// AWS access info.
-					if ( ! defined( 'AWSACCESSKEY' ) ) {
-						define( 'AWSACCESSKEY', get_option( 'wpdb_dest_amazon_s3_bucket_key' ) );
+					if ( ! defined( 'WPDBBKP_AWS_ACCESS_KEY' ) ) {
+						define( 'WPDBBKP_AWS_ACCESS_KEY', get_option( 'wpdb_dest_amazon_s3_bucket_key' ) );
 					}
-					if ( ! defined( 'AWSSECRETKEY' ) ) {
-						define( 'AWSSECRETKEY', get_option( 'wpdb_dest_amazon_s3_bucket_secret' ) );
+					if ( ! defined( 'WPDBBKP_AWS_SECRET_KEY' ) ) {
+						define( 'WPDBBKP_AWS_SECRET_KEY', get_option( 'wpdb_dest_amazon_s3_bucket_secret' ) );
 					}
 
 					// Check for CURL.
@@ -82,10 +82,10 @@ if($wp_db_backup_destination_s3==1 && !empty($wpdb_dest_amazon_s3_bucket) && !em
 						echo "ERROR: CURL extension not loaded\n\n";
 					}
 
-					$s3     = new S3( AWSACCESSKEY, AWSSECRETKEY );
-					$result = $s3->listBuckets();
+					$wpdbbkp_s3     = new S3( WPDBBKP_AWS_ACCESS_KEY, WPDBBKP_AWS_SECRET_KEY );
+					$wpdbbkp_result = $wpdbbkp_s3->listBuckets();
 					if ( get_option( 'wpdb_dest_amazon_s3_bucket' ) ) {
-						if (!empty($result) && false === in_array( get_option( 'wpdb_dest_amazon_s3_bucket' ), $result, true ) ) {
+						if ( ! empty( $wpdbbkp_result ) && false === in_array( get_option( 'wpdb_dest_amazon_s3_bucket' ), $wpdbbkp_result, true ) ) {
 							echo '<span class="label label-warning">'.esc_html__('Invalid bucket name or AWS details','wpdbbkp').'</span>';
 						}
 					}
@@ -101,7 +101,7 @@ if($wp_db_backup_destination_s3==1 && !empty($wpdb_dest_amazon_s3_bucket) && !em
 				<div class="row form-group">
 					<label class="col-sm-2" for="wp_db_backup_destination_s3"><?php echo esc_html__('Enable Amazon S3 Destination', 'wpdbbkp') ?></label>
 					<div class="col-sm-6">
-						<input type="checkbox" id="wp_db_backup_destination_s3" <?php echo ( true === isset( $wp_db_backup_destination_s3 ) && 1 === $wp_db_backup_destination_s3 ) ? 'checked' : ''; ?> name="wp_db_backup_destination_s3">
+						<input type="checkbox" id="wp_db_backup_destination_s3" <?php echo ( true === isset( $wpdbbkp_destination_s3 ) && 1 === $wpdbbkp_destination_s3 ) ? 'checked' : ''; ?> name="wp_db_backup_destination_s3">
 				</div>
 
 				</div>

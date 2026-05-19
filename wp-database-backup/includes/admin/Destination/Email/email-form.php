@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 /**
  * Destination dropboxs
  *
@@ -53,41 +56,39 @@ if ( isset( $_POST[ 'email_notification_submit' ] ) && 'Save Settings' === $_POS
 							echo '<form name="wp-email_form" method="post" action="" >';
 							wp_nonce_field( 'wp-database-backup' );
 
-							$wp_db_backup_email_id          = '';
-							$wp_db_backup_email_id          = sanitize_email( get_option( 'wp_db_backup_email_id' ) );
-							$wp_db_backup_email_attachment  = '';
-							$wp_db_backup_email_attachment  = get_option( 'wp_db_backup_email_attachment' );
-							$wp_db_backup_destination_email = get_option( 'wp_db_backup_destination_Email' );
+							$wpdbbkp_email_id          = sanitize_email( get_option( 'wp_db_backup_email_id' ) );
+							$wpdbbkp_email_attachment  = get_option( 'wp_db_backup_email_attachment' );
+							$wpdbbkp_destination_email = get_option( 'wp_db_backup_destination_Email' );
 							echo '<p>';
 							echo '<span class="glyphicon glyphicon-envelope"></span> '.esc_html__('Send Email Notification', 'wpdbbkp').'</br></p>';
-							$ischecked = ( true === isset( $wp_db_backup_destination_email ) && 1 === (int) $wp_db_backup_destination_email ) ? 'checked' : '';
+							$wpdbbkp_ischecked = ( true === isset( $wpdbbkp_destination_email ) && 1 === (int) $wpdbbkp_destination_email ) ? 'checked' : '';
 							echo '<div class="row form-group">
                                 <label class="col-sm-2" for="wp_db_backup_destination_Email">'.esc_html__('Enable Email Notification:', 'wpdbbkp').'</label>
                                 <div class="col-sm-6">
-                                    <input type="checkbox" ' . esc_attr( $ischecked ) . ' id="wp_db_backup_destination_Email" name="wp_db_backup_destination_Email">
+                                    <input type="checkbox" ' . esc_attr( $wpdbbkp_ischecked ) . ' id="wp_db_backup_destination_Email" name="wp_db_backup_destination_Email">
                                 </div>
                             </div>';
 							echo '<div class="row form-group"><label class="col-sm-2" for="wp_db_backup_email_id">'.esc_html__('Email Id', 'wpdbbkp').'</label>';
-							echo '<div class="col-sm-6"><input type="text" id="wp_db_backup_email_id" class="form-control" name="wp_db_backup_email_id" value="' . esc_attr( $wp_db_backup_email_id ) . '" placeholder="'.esc_attr__('Your Email Id', 'wpdbbkp').'"></div>';
+							echo '<div class="col-sm-6"><input type="text" id="wp_db_backup_email_id" class="form-control" name="wp_db_backup_email_id" value="' . esc_attr( $wpdbbkp_email_id ) . '" placeholder="'.esc_attr__('Your Email Id', 'wpdbbkp').'"></div>';
 							echo '<div class="col-sm-4">'.esc_html__('Leave blank if you don\'t want use this feature or Disable Email Notification', 'wpdbbkp').'</div></div>';
 							echo '<div class="row form-group"><label class="col-sm-2" for="lead-theme">'.esc_html__('Attach backup file', 'wpdbbkp').' </label> ';
-							$selected_option = get_option( 'wp_db_backup_email_attachment' );
+							$wpdbbkp_selected_option = get_option( 'wp_db_backup_email_attachment' );
 
-							if ( 'yes' === $selected_option ) {
-								$selected_yes = 'selected="selected"';
+							if ( 'yes' === $wpdbbkp_selected_option ) {
+								$wpdbbkp_selected_yes = 'selected="selected"';
 							} else {
-								$selected_yes = '';
+								$wpdbbkp_selected_yes = '';
 							}
-							if ( 'no' === $selected_option ) {
-								$selected_no = 'selected="selected"';
+							if ( 'no' === $wpdbbkp_selected_option ) {
+								$wpdbbkp_selected_no = 'selected="selected"';
 							} else {
-								$selected_no = '';
+								$wpdbbkp_selected_no = '';
 							}
 							echo '<div class="col-sm-2"><select id="lead-theme" class="form-control" name="wp_db_backup_email_attachment">';
 							echo '<option value="none">'.esc_html__('Select', 'wpdbbkp').'</option>';
 
-							echo '<option  value="yes"' . esc_attr( $selected_yes ) . '>'.esc_html__('Yes', 'wpdbbkp').'</option>';
-							echo '<option  value="no" ' . esc_attr( $selected_no ) . '>'.esc_html__('No', 'wpdbbkp').'</option>';
+							echo '<option  value="yes"' . esc_attr( $wpdbbkp_selected_yes ) . '>'.esc_html__('Yes', 'wpdbbkp').'</option>';
+							echo '<option  value="no" ' . esc_attr( $wpdbbkp_selected_no ) . '>'.esc_html__('No', 'wpdbbkp').'</option>';
 
 							echo '</select></div>';
 

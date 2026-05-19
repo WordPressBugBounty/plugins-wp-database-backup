@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 /**
  * Destination SFTP
  *
@@ -9,48 +12,48 @@ require __DIR__ . '/vendor/autoload.php';
 use phpseclib3\Net\SFTP;
 use phpseclib3\Crypt\PublicKeyLoader;
 
-// Retrieve SFTP details
-$wpdbbkp_sftp_details = get_option('wp_db_backup_sftp_details', array());
-$host       = isset($wpdbbkp_sftp_details['host']) ? $wpdbbkp_sftp_details['host'] : '';
-$port       = isset($wpdbbkp_sftp_details['port']) ? $wpdbbkp_sftp_details['port'] : 22;
-$user       = isset($wpdbbkp_sftp_details['username']) ? $wpdbbkp_sftp_details['username'] : '';
-$pass       = isset($wpdbbkp_sftp_details['password']) ? $wpdbbkp_sftp_details['password'] : '';
-$pkey       = isset($wpdbbkp_sftp_details['sftp_key']) ? base64_decode($wpdbbkp_sftp_details['sftp_key']) : '';
-$key_pass   = isset($wpdbbkp_sftp_details['key_password']) ? $wpdbbkp_sftp_details['key_password'] : false;
-$directory  = isset($wpdbbkp_sftp_details['directory']) ? $wpdbbkp_sftp_details['directory'] : '';
-if ( '' === $directory ) {
-    $directory = '/';
+// Retrieve SFTP details.
+$wpdbbkp_sftp_details = get_option( 'wp_db_backup_sftp_details', array() );
+$wpdbbkp_host         = isset( $wpdbbkp_sftp_details['host'] ) ? $wpdbbkp_sftp_details['host'] : '';
+$wpdbbkp_port         = isset( $wpdbbkp_sftp_details['port'] ) ? $wpdbbkp_sftp_details['port'] : 22;
+$wpdbbkp_user         = isset( $wpdbbkp_sftp_details['username'] ) ? $wpdbbkp_sftp_details['username'] : '';
+$wpdbbkp_pass         = isset( $wpdbbkp_sftp_details['password'] ) ? $wpdbbkp_sftp_details['password'] : '';
+$wpdbbkp_pkey         = isset( $wpdbbkp_sftp_details['sftp_key'] ) ? base64_decode( $wpdbbkp_sftp_details['sftp_key'] ) : '';
+$wpdbbkp_key_pass     = isset( $wpdbbkp_sftp_details['key_password'] ) ? $wpdbbkp_sftp_details['key_password'] : false;
+$wpdbbkp_directory    = isset( $wpdbbkp_sftp_details['directory'] ) ? $wpdbbkp_sftp_details['directory'] : '';
+if ( '' === $wpdbbkp_directory ) {
+	$wpdbbkp_directory = '/';
 }
-$auth_type  = isset($wpdbbkp_sftp_details['auth_type']) ? $wpdbbkp_sftp_details['auth_type'] : 'password';
+$wpdbbkp_auth_type = isset( $wpdbbkp_sftp_details['auth_type'] ) ? $wpdbbkp_sftp_details['auth_type'] : 'password';
 
-if ( ! empty( $host ) && ! empty( $user ) && ( ! empty( $pass ) || ( 'key' === $auth_type && ! empty( $pkey ) ) ) ) {
-    $sftp = new SFTP( $host, $port );
+if ( ! empty( $wpdbbkp_host ) && ! empty( $wpdbbkp_user ) && ( ! empty( $wpdbbkp_pass ) || ( 'key' === $wpdbbkp_auth_type && ! empty( $wpdbbkp_pkey ) ) ) ) {
+	$wpdbbkp_sftp = new SFTP( $wpdbbkp_host, $wpdbbkp_port );
 
-    if ( $sftp ) {
-        // Authenticate
-        if ( 'key' === $auth_type ) {
-            $key    = PublicKeyLoader::load( $pkey, $key_pass );
-            $result = $sftp->login( $user, $key );
-        } else {
-            $result = $sftp->login( $user, $pass );
-        }
+	if ( $wpdbbkp_sftp ) {
+		// Authenticate.
+		if ( 'key' === $wpdbbkp_auth_type ) {
+			$wpdbbkp_key    = PublicKeyLoader::load( $wpdbbkp_pkey, $wpdbbkp_key_pass );
+			$wpdbbkp_result = $wpdbbkp_sftp->login( $wpdbbkp_user, $wpdbbkp_key );
+		} else {
+			$wpdbbkp_result = $wpdbbkp_sftp->login( $wpdbbkp_user, $wpdbbkp_pass );
+		}
 
-        // Upload file.
-        if ( $result ) {
-            $wp_upload_dir                  = wp_upload_dir();
-            $wp_upload_dir['basedir']       = str_replace( '\\', '/', $wp_upload_dir['basedir'] );
-            $remotefile                     = $directory . '/' . $filename;
-            $localfile                      = trailingslashit( $wp_upload_dir['basedir'] . '/db-backup' ) . $filename;
-            $success                        = $sftp->put( $remotefile, $localfile, SFTP::SOURCE_LOCAL_FILE | SFTP::RESUME_START );
+		// Upload file.
+		if ( $wpdbbkp_result ) {
+			$wpdbbkp_upload_dir            = wp_upload_dir();
+			$wpdbbkp_upload_dir['basedir'] = str_replace( '\\', '/', $wpdbbkp_upload_dir['basedir'] );
+			$wpdbbkp_remotefile            = $wpdbbkp_directory . '/' . $wpdbbkp_filename;
+			$wpdbbkp_localfile             = trailingslashit( $wpdbbkp_upload_dir['basedir'] . '/db-backup' ) . $wpdbbkp_filename;
+			$wpdbbkp_success               = $wpdbbkp_sftp->put( $wpdbbkp_remotefile, $wpdbbkp_localfile, SFTP::SOURCE_LOCAL_FILE | SFTP::RESUME_START );
 
-            if ( $success ) {
-                $args[2] = $args[2] . '<br> ' . esc_html__( 'Upload Database Backup on SFTP', 'wpdbbkp' ) . ' ' . $host;
-                $args[4] .= 'SFTP, ';
-            }
-        }
-    }
+			if ( $wpdbbkp_success ) {
+				$wpdbbkp_args[2] = $wpdbbkp_args[2] . '<br> ' . esc_html__( 'Upload Database Backup on SFTP', 'wpdbbkp' ) . ' ' . $wpdbbkp_host;
+				$wpdbbkp_args[4] .= 'SFTP, ';
+			}
+		}
+	}
 
-    if ( isset( $sftp ) && $sftp ) {
-        $sftp->disconnect();
-    }
+	if ( isset( $wpdbbkp_sftp ) && $wpdbbkp_sftp ) {
+		$wpdbbkp_sftp->disconnect();
+	}
 }

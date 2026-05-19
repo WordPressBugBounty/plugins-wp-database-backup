@@ -51,9 +51,9 @@ function wpdbbkp_add_deactivation_feedback_modal()
 
     $current_user = wp_get_current_user();
     if (!($current_user instanceof WP_User)) {
-        $email = '';
+        $wpdbbkp_email = '';
     } else {
-        $email = trim($current_user->user_email);
+        $wpdbbkp_email = trim($current_user->user_email);
     }
 
     require_once WPDB_PATH . "includes/admin/deactivate-feedback.php";

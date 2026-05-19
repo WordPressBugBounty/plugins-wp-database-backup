@@ -1,5 +1,7 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 /**
  * Restore Database and file class
  *
@@ -110,17 +112,17 @@ class Wpdbbkp_Restore {
             
                     if (!$db_exists) {
                         //phpcs:ignore -- create database if it doesn't exist
-                        $wpdb->query($wpdb->prepare("CREATE DATABASE IF NOT EXISTS `%s`", $database_name));
+                        $wpdb->query( 'CREATE DATABASE IF NOT EXISTS `' . esc_sql( $database_name ) . '`' );
                         $wpdb->select($database_name);
                     }
                     //phpcs:ignore -- get all tables in the database
-                    $tables = $wpdb->get_col($wpdb->prepare("SHOW TABLES FROM `%s`", $database_name));
+                    $tables = $wpdb->get_col( 'SHOW TABLES FROM `' . esc_sql( $database_name ) . '`' );
 
               
                 if (!empty($tables)) {
                         foreach ($tables as $table_name) {
                                 //phpcs:ignore -- drop all tables in the database before restore
-                                $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS `%s`", $table_name));
+                                $wpdb->query( 'DROP TABLE IF EXISTS `' . esc_sql( $table_name ) . '`' );
                         }
                 }
             

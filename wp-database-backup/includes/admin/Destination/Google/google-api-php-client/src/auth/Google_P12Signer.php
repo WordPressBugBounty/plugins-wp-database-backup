@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 /*
  * Copyright 2011 Google Inc.
  *

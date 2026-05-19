@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 
-add_action( 'wp_db_backup_completed', array( 'WPDatabaseBackupCD', 'wp_db_backup_completed' ) );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDatabaseBackupCD', 'wp_db_backup_completed' ) );
 
 /**
  * WPDatabaseBackupCD Class.

@@ -1,5 +1,8 @@
 <?php 
-$reasons = array(
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
+$wpdbbkp_reasons = array(
     	1 => '<li><label><input type="radio" name="wpdbbkp_disable_reason" value="temporary"/>' . esc_html__('It is only temporary', 'wpdbbkp') . '</label></li>',
 		2 => '<li><label><input type="radio" name="wpdbbkp_disable_reason" value="stopped"/>' . esc_html__('I stopped using WP Database Backup on my site', 'wpdbbkp') . '</label></li>',
 		3 => '<li><label><input type="radio" name="wpdbbkp_disable_reason" value="missing"/>' . esc_html__('I miss a feature', 'wpdbbkp') . '</label></li>
@@ -11,7 +14,7 @@ $reasons = array(
 		6 => '<li><label><input type="radio" name="wpdbbkp_disable_reason" value="other"/>' . esc_html__('Other reason', 'wpdbbkp') . '</label></li>
 		<li><textarea  class="mb-box other" name="wpdbbkp_disable_text[]" placeholder="'. esc_attr__('Please specify, if possible', 'wpdbbkp').'"></textarea></li>',
     );
-shuffle($reasons);
+shuffle($wpdbbkp_reasons);
 ?>
 
 
@@ -21,13 +24,13 @@ shuffle($reasons);
 	    <h3><strong><?php echo esc_html__('If you have a moment, please let us know why you are deactivating:', 'wpdbbkp'); ?></strong></h3>
 	    <ul>
                 <?php 
-                foreach ($reasons as $reason){
-                    echo wp_kses_post($reason);
+                foreach ($wpdbbkp_reasons as $wpdbbkp_reason){
+                    echo wp_kses_post($wpdbbkp_reason);
                 }
                 ?>
 	    </ul>
-	    <?php if ($email) : ?>
-    	    <input type="hidden" name="wpdbbkp_disable_from" value="<?php echo esc_attr($email); ?>"/>
+	    <?php if ( ! empty( $wpdbbkp_email ) ) : ?>
+    	    <input type="hidden" name="wpdbbkp_disable_from" value="<?php echo esc_attr( $wpdbbkp_email ); ?>"/>
 	    <?php endif; ?>
 	    <input id="wpdbbkp-feedback-submit" class="button button-primary" type="submit" name="wpdbbkp_disable_submit" value="<?php echo esc_html__('Submit & Deactivate', 'wpdbbkp'); ?>"/>
 	    <a class="button"><?php echo esc_html__('Only Deactivate', 'wpdbbkp'); ?></a>

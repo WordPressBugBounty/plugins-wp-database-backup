@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-add_action( 'wp_db_backup_completed', array( 'WPDatabaseBackupGenericS3', 'wp_db_backup_completed' ) );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDatabaseBackupGenericS3', 'wp_db_backup_completed' ) );
 add_action( 'wp_ajax_test_generics3_connection', array( 'WPDatabaseBackupGenericS3', 'ajax_test_connection' ) );
 
 /**
@@ -20,12 +20,28 @@ add_action( 'wp_ajax_test_generics3_connection', array( 'WPDatabaseBackupGeneric
 class WPDatabaseBackupGenericS3 {
 
 	/**
+	 * Log Generic S3 messages when debug logging is enabled.
+	 *
+	 * @param string $message Log message.
+	 */
+	private static function log( $message ) {
+		if ( function_exists( 'wpdbbkp_log' ) ) {
+			wpdbbkp_log( $message );
+			return;
+		}
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional S3 operation logging.
+			error_log( $message );
+		}
+	}
+
+	/**
 	 * AJAX handler for testing Generic S3 connection
 	 */
 	public static function ajax_test_connection() {
-		// Check nonce for security
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'test_generics3_connection' ) ) {
-			wp_die( 'Security check failed' );
+		// Check nonce for security.
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'test_generics3_connection' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce.
+			wp_die( esc_html__( 'Security check failed', 'wpdbbkp' ) );
 		}
 
 		// Check user capabilities
@@ -180,7 +196,7 @@ class WPDatabaseBackupGenericS3 {
 					}
 				} catch ( Exception $bucket_error ) {
 					// If listing fails, try to create bucket directly
-					error_log( 'GenericS3: Failed to list buckets: ' . $bucket_error->getMessage() );
+					self::log( 'GenericS3: Failed to list buckets: ' . $bucket_error->getMessage() );
 				}
 
 				if ( ! $bucket_exists ) {
@@ -188,12 +204,12 @@ class WPDatabaseBackupGenericS3 {
 					try {
 						if ( $s3->putBucket( $bucket_name ) ) {
 							$bucket_exists = true;
-							error_log( 'GenericS3: Bucket is ready for use: ' . $bucket_name );
+							self::log( 'GenericS3: Bucket is ready for use: ' . $bucket_name );
 						} else {
-							error_log( 'GenericS3: Failed to create bucket: ' . $bucket_name );
+							self::log( 'GenericS3: Failed to create bucket: ' . $bucket_name );
 						}
 					} catch ( Exception $create_error ) {
-						error_log( 'GenericS3: Failed to create bucket: ' . $create_error->getMessage() );
+						self::log( 'GenericS3: Failed to create bucket: ' . $create_error->getMessage() );
 					}
 				}
 
@@ -302,7 +318,7 @@ class WPDatabaseBackupGenericS3Client {
 
 		// For bucket creation, both 200 (created) and 409 (already exists) are success
 		if ( $result && $result['status'] === 409 ) {
-			error_log( 'GenericS3: Bucket already exists: ' . $bucket );
+			self::log( 'GenericS3: Bucket already exists: ' . $bucket );
 			return true; // Bucket already exists, which is fine
 		}
 
@@ -320,18 +336,18 @@ class WPDatabaseBackupGenericS3Client {
 	 */
 	public function putObjectFile( $filePath, $bucket, $uri, $acl = 'private' ) {
 		if ( ! file_exists( $filePath ) ) {
-			error_log( 'GenericS3: File does not exist: ' . $filePath );
+			self::log( 'GenericS3: File does not exist: ' . $filePath );
 			return false;
 		}
 
 		$filedata = file_get_contents( $filePath );
 		if ( false === $filedata ) {
-			error_log( 'GenericS3: Failed to read file: ' . $filePath );
+			self::log( 'GenericS3: Failed to read file: ' . $filePath );
 			return false;
 		}
 
 		$file_size = strlen( $filedata );
-		error_log( 'GenericS3: Attempting to upload file ' . $filePath . ' (' . $file_size . ' bytes) to bucket ' . $bucket . ' with URI ' . $uri );
+		self::log( 'GenericS3: Attempting to upload file ' . $filePath . ' (' . $file_size . ' bytes) to bucket ' . $bucket . ' with URI ' . $uri );
 
 		$content_type = $this->getMimeType( $filePath );
 		$content_md5 = base64_encode( md5( $filedata, true ) );
@@ -353,9 +369,9 @@ class WPDatabaseBackupGenericS3Client {
 
 		$success = ( $result && $result['status'] >= 200 && $result['status'] < 300 );
 		if ( $success ) {
-			error_log( 'GenericS3: Successfully uploaded file to ' . $bucket . '/' . $uri );
+			self::log( 'GenericS3: Successfully uploaded file to ' . $bucket . '/' . $uri );
 		} else {
-			error_log( 'GenericS3: Failed to upload file to ' . $bucket . '/' . $uri . ' - Status: ' . ( $result ? $result['status'] : 'No response' ) );
+			self::log( 'GenericS3: Failed to upload file to ' . $bucket . '/' . $uri . ' - Status: ' . ( $result ? $result['status'] : 'No response' ) );
 		}
 
 		return $success;
@@ -426,42 +442,38 @@ class WPDatabaseBackupGenericS3Client {
 		$authorization_header = 'AWS4-HMAC-SHA256 Credential=' . $this->accessKey . '/' . $credential_scope . ', SignedHeaders=' . $signed_headers . ', Signature=' . $signature;
 		$headers['Authorization'] = $authorization_header;
 
-		// Debug logging for AWS4 signature (only on errors)
-		if ( isset( $_GET['debug_generics3'] ) ) {
-			error_log( 'GenericS3: AWS4 Signature Details - URL: ' . $url . ', Region: ' . $region . ', Credential Scope: ' . $credential_scope );
-			error_log( 'GenericS3: Canonical URI: ' . $canonical_uri );
-			error_log( 'GenericS3: Authorization: ' . substr( $authorization_header, 0, 100 ) . '...' );
+		// Debug logging for AWS4 signature (admin-only, when explicitly requested).
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && current_user_can( 'manage_options' ) && isset( $_GET['debug_generics3'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Debug flag for administrators only.
+			self::log( 'GenericS3: AWS4 Signature Details - URL: ' . $url . ', Region: ' . $region . ', Credential Scope: ' . $credential_scope );
+			self::log( 'GenericS3: Canonical URI: ' . $canonical_uri );
+			self::log( 'GenericS3: Authorization: ' . substr( $authorization_header, 0, 100 ) . '...' );
 		}
 
-		// Make request
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $verb );
-		curl_setopt( $ch, CURLOPT_HTTPHEADER, $this->buildHeadersArray( $headers ) );
+		// Make request via WordPress HTTP API.
+		$request_args = array(
+			'method'    => $verb,
+			'headers'   => $headers,
+			'timeout'   => 60,
+			'sslverify' => false,
+		);
 
 		if ( ! empty( $body ) ) {
-			curl_setopt( $ch, CURLOPT_POSTFIELDS, $body );
+			$request_args['body'] = $body;
 		}
 
-		// SSL settings
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
+		$wp_response = wp_remote_request( $url, $request_args );
 
-		$response = curl_exec( $ch );
-		$status   = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-		$error    = curl_error( $ch );
-
-		curl_close( $ch );
-
-		if ( $error ) {
-			error_log( 'GenericS3: CURL error - ' . $error . ' for URL: ' . $url );
+		if ( is_wp_error( $wp_response ) ) {
+			self::log( 'GenericS3: HTTP error - ' . $wp_response->get_error_message() . ' for URL: ' . $url );
 			return false;
 		}
 
+		$response = wp_remote_retrieve_body( $wp_response );
+		$status   = (int) wp_remote_retrieve_response_code( $wp_response );
+
 		// Log non-success status codes for debugging
 		if ( $status < 200 || $status >= 300 ) {
-			error_log( 'GenericS3: HTTP ' . $status . ' for URL: ' . $url . ' Response: ' . substr( $response, 0, 500 ) );
+			self::log( 'GenericS3: HTTP ' . $status . ' for URL: ' . $url . ' Response: ' . substr( $response, 0, 500 ) );
 		}
 
 		return array(
@@ -609,20 +621,6 @@ class WPDatabaseBackupGenericS3Client {
 		$k_signing = hash_hmac( 'sha256', 'aws4_request', $k_service, true );
 
 		return hash_hmac( 'sha256', $string_to_sign, $k_signing );
-	}
-
-	/**
-	 * Build headers array for curl
-	 *
-	 * @param array $headers Headers array.
-	 * @return array
-	 */
-	private function buildHeadersArray( $headers ) {
-		$result = array();
-		foreach ( $headers as $key => $value ) {
-			$result[] = $key . ': ' . $value;
-		}
-		return $result;
 	}
 
 	/**

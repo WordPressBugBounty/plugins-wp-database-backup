@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 
 $wpdbbkp_local_enabled	=	get_option( 'wp_db_local_backup',null );
 $wpdbbkp_local_path		=	get_option( 'wp_db_local_backup_path',null );
@@ -28,26 +31,24 @@ if($wpdbbkp_local_enabled==1 && !empty($wpdbbkp_local_path))
 
 							echo '<form name="wp-local_form" method="post" action="" >';
 							wp_nonce_field( 'wp-database-backup' );
-							$wp_db_local_backup_path = get_option( 'wp_db_local_backup_path' );
-							$wp_db_local_backup      = get_option( 'wp_db_local_backup' );
 							echo '<p>';
-							$ischecked = ( isset( $wp_db_local_backup ) && 1 === (int) $wp_db_local_backup ) ? 'checked' : '';
+							$wpdbbkp_ischecked = ( isset( $wpdbbkp_local_enabled ) && 1 === (int) $wpdbbkp_local_enabled ) ? 'checked' : '';
 							echo '<div class="row form-group">
                                 <label class="col-sm-2" for="wp_db_local_backup">'.esc_html__('Enable Local Backup','wpdbbkp').'</label>
                                 <div class="col-sm-6">
-                                    <input type="checkbox" ' . esc_attr( $ischecked ) . ' id="wp_db_local_backup" name="wp_db_local_backup">
+                                    <input type="checkbox" ' . esc_attr( $wpdbbkp_ischecked ) . ' id="wp_db_local_backup" name="wp_db_local_backup">
                                 </div>
                             </div>';
 							echo '<div class="row form-group"><label class="col-sm-2" for="wp_db_local_backup_path">'.esc_html__('Local Backup Path','wpdbbkp').'</label>';
-							echo '<div class="col-sm-6"><input type="text" id="wp_db_local_backup_path" class="form-control" name="wp_db_local_backup_path" value="' . esc_attr( $wp_db_local_backup_path ) . '" placeholder="'.esc_attr__('Directory Path','wpdbbkp').'"></div>';
+							echo '<div class="col-sm-6"><input type="text" id="wp_db_local_backup_path" class="form-control" name="wp_db_local_backup_path" value="' . esc_attr( $wpdbbkp_local_path ) . '" placeholder="'.esc_attr__('Directory Path','wpdbbkp').'"></div>';
 							echo '<div class="col-sm-4">'.esc_html__('Leave blank if you don\'t want use this feature or Disable Local Backup','wpdbbkp').'</div></div>';
 							echo '<div class="row form-group">';
 							echo '<div class="col-sm-12">';
-							if ( false === empty( $wp_db_local_backup_path ) && false === file_exists( $wp_db_local_backup_path ) ) {
+							if ( false === empty( $wpdbbkp_local_path ) && false === file_exists( $wpdbbkp_local_path ) ) {
 								echo '<div class="alert alert-warning alert-dismissible fade in" role="alert">
                                       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>';
 								esc_html_e( 'Invalid Local Backup Path : ', 'wpdbbkp' );
-								echo esc_url( $wp_db_local_backup_path );
+								echo esc_url( $wpdbbkp_local_path );
 								echo '</div>';
 							}
 							esc_html_e( 'Backups outside from the public_html directory or inside public_html directory but diffrent location (without using FTP).', 'wpdbbkp' );

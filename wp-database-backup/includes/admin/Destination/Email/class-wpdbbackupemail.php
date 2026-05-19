@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-add_action( 'wp_db_backup_completed', array( 'WPDBBackupEmail', 'wp_db_backup_completed' ), 11 );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDBBackupEmail', 'wp_db_backup_completed' ), 11 );
 
 /**
  * WPDBBackupEmail Class.
@@ -34,7 +34,7 @@ class WPDBBackupEmail {
 			$filesze                = $args[3];
 			$site_url               = site_url();
 			$log_message_attachment = '';
-			$message                = '';
+			$wpdbbkp_message = '';
 
 			include 'template-email-notification.php';
 
@@ -46,7 +46,7 @@ class WPDBBackupEmail {
 			} else {
 				$attachments = '';
 			}
-			if ( wp_mail( $to, $subject, $message, $headers, $attachments ) ) {
+			if ( wp_mail( $to, $subject, $wpdbbkp_message, $headers, $attachments ) ) {
 				$args[4] .= 'Email, ';
 			}
 			$log_message               = '<b>Send Backup Mail to</b>:' . $to;

@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$update_msg = '';
+$wpdbbkp_update_msg = '';
 if ( true === isset( $_POST['wpdb_bb_s3'] ) && 'Y' === $_POST['wpdb_bb_s3'] ) {
 	// Validate that the contents of the form request came from the current site and not somewhere else added 21-08-15 V.3.4.
 	if ( ! isset( $_POST['wpdbbackup_update_bb_setting'] ) ) {
@@ -21,16 +21,16 @@ if ( true === isset( $_POST['wpdb_bb_s3'] ) && 'Y' === $_POST['wpdb_bb_s3'] ) {
 
 	// Save the posted value in the database.
 	if ( true === isset( $_POST['wpdb_dest_bb_s3_bucket_host'] ) ) {
-		update_option( 'wpdb_dest_bb_s3_bucket_host', wp_db_filter_data( sanitize_url( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket_host'] ) ) ), false );
+		update_option( 'wpdb_dest_bb_s3_bucket_host', wpdbbkp_filter_data( sanitize_url( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket_host'] ) ) ), false );
 	}
 	if ( true === isset( $_POST['wpdb_dest_bb_s3_bucket'] ) ) {
-		update_option( 'wpdb_dest_bb_s3_bucket', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket'] ) ) ), false );
+		update_option( 'wpdb_dest_bb_s3_bucket', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket'] ) ) ), false );
 	}
 	if ( true === isset( $_POST['wpdb_dest_bb_s3_bucket_key'] ) ) {
-		update_option( 'wpdb_dest_bb_s3_bucket_key', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket_key'] ) ) ) , false);
+		update_option( 'wpdb_dest_bb_s3_bucket_key', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket_key'] ) ) ) , false);
 	}
 	if ( true === isset( $_POST['wpdb_dest_bb_s3_bucket_secret'] ) ) {
-		update_option( 'wpdb_dest_bb_s3_bucket_secret', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket_secret'] ) ) ), false );
+		update_option( 'wpdb_dest_bb_s3_bucket_secret', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_dest_bb_s3_bucket_secret'] ) ) ), false );
 	}
 	if ( isset( $_POST['wp_db_backup_destination_bb'] ) ) {
 		update_option( 'wp_db_backup_destination_bb', 1 , false);
@@ -44,23 +44,23 @@ if ( true === isset( $_POST['wpdb_bb_s3'] ) && 'Y' === $_POST['wpdb_bb_s3'] ) {
 		update_option( 'wp_db_incremental_backup', 0 , false);
 	}
 	// Put a "settings updated" message on the screen.
-	$update_msg = esc_html__('Your Blackblaze S3 setting has been saved.' , 'wpdbbkp');
+	$wpdbbkp_update_msg = esc_html__('Your Blackblaze S3 setting has been saved.' , 'wpdbbkp');
 }
-$wp_db_backup_destination_bb = get_option( 'wp_db_backup_destination_bb',0);
+$wpdbbkp_destination_bb = get_option( 'wp_db_backup_destination_bb',0);
 $wpdb_dest_bb_s3_bucket_host = get_option( 'wpdb_dest_bb_s3_bucket_host',null);
 $wpdb_dest_bb_s3_bucket = get_option( 'wpdb_dest_bb_s3_bucket',null);
 $wpdb_dest_bb_s3_bucket_key = get_option( 'wpdb_dest_bb_s3_bucket_key',null);
 $wpdb_dest_bb_s3_bucket_secret = get_option( 'wpdb_dest_bb_s3_bucket_secret',null);
-$incremental_backup = get_option( 'wp_db_incremental_backup', 0 );
-if ( 1 === (int) $wp_db_incremental_backup ) {
-	$incremental_backup = 'checked';
+$wpdbbkp_incremental_backup = get_option( 'wp_db_incremental_backup', 0 );
+if ( 1 === (int) get_option( 'wp_db_incremental_backup', 0 ) ) {
+	$wpdbbkp_incremental_backup = 'checked';
 } else {
-	$incremental_backup = '';
+	$wpdbbkp_incremental_backup = '';
 }
 
 $wpdbbkp_bb_s3_status			=	'<label><b>'.esc_html__('Status', 'wpdbbkp').'</b>: '.esc_html__('Not Configured', 'wpdbbkp').' </label> ';
 
-if($wp_db_backup_destination_bb == 1 && !empty($wpdb_dest_bb_s3_bucket) && !empty($wpdb_dest_bb_s3_bucket_key) && !empty($wpdb_dest_bb_s3_bucket_secret) && !empty($wpdb_dest_bb_s3_bucket_host))
+if($wpdbbkp_destination_bb == 1 && !empty($wpdb_dest_bb_s3_bucket) && !empty($wpdb_dest_bb_s3_bucket_key) && !empty($wpdb_dest_bb_s3_bucket_secret) && !empty($wpdb_dest_bb_s3_bucket_host))
 {
 	$wpdbbkp_bb_s3_status ='<label><b>'.esc_html__('Status', 'wpdbbkp').'</b>: <span class="dashicons dashicons-yes-alt" style="color:green;font-size:16px" title="'.esc_attr__('Destination enabled', 'wpdbbkp').'"></span><span class="configured">'.esc_html__('Configured', 'wpdbbkp').' </span> </label> ';
 }
@@ -78,8 +78,8 @@ if($wp_db_backup_destination_bb == 1 && !empty($wpdb_dest_bb_s3_bucket) && !empt
 	<div id="collapsebb" class="panel-collapse collapse">
 		<div class="panel-body">
 			<?php
-			if($update_msg){
-				echo '<div class="updated"><p><strong>'.esc_html( $update_msg ).'</strong></p></div>';
+			if($wpdbbkp_update_msg){
+				echo '<div class="updated"><p><strong>'.esc_html( $wpdbbkp_update_msg ).'</strong></p></div>';
 			}
 			
 
@@ -95,24 +95,26 @@ if($wp_db_backup_destination_bb == 1 && !empty($wpdb_dest_bb_s3_bucket) && !empt
 					}
 			
 					 
-						$b2_authorize_url = "https://api.backblazeb2.com/b2api/v2/b2_authorize_account";
-						$credentials = base64_encode($wpdb_dest_bb_s3_bucket_key . ":" . $wpdb_dest_bb_s3_bucket_secret);
+						$wpdbbkp_b2_authorize_url = 'https://api.backblazeb2.com/b2api/v2/b2_authorize_account';
+						$wpdbbkp_credentials = base64_encode( $wpdb_dest_bb_s3_bucket_key . ':' . $wpdb_dest_bb_s3_bucket_secret );
 
 						// Authorize account
-						$response = wp_remote_get($b2_authorize_url, array(
-							'headers' => array(
-								'Authorization' => 'Basic ' . $credentials
-							),
-							'timeout' => 60 // Extend timeout
-						));
+						$wpdbbkp_response = wp_remote_get(
+							$wpdbbkp_b2_authorize_url,
+							array(
+								'headers' => array(
+									'Authorization' => 'Basic ' . $wpdbbkp_credentials,
+								),
+								'timeout' => 60, // Extend timeout
+							)
+						);
 
-						if(!is_wp_error($response)){
-							$body = wp_remote_retrieve_body($response);
-							$data = json_decode($body);
+						if ( ! is_wp_error( $wpdbbkp_response ) ) {
+							$wpdbbkp_body = wp_remote_retrieve_body( $wpdbbkp_response );
+							$wpdbbkp_data = json_decode( $wpdbbkp_body );
 						}
-					
-						
-					if(is_wp_error($response) || empty($data->authorizationToken)){
+
+					if ( is_wp_error( $wpdbbkp_response ) || empty( $wpdbbkp_data->authorizationToken ) ) {
 						echo '<span class="label label-warning">'.esc_html__( 'Invalid bucket name or Backblaze details' ,'wpdbbkp').'</span>';
 					}
 					
@@ -128,7 +130,7 @@ if($wp_db_backup_destination_bb == 1 && !empty($wpdb_dest_bb_s3_bucket) && !empt
 				<div class="row form-group">
 					<label class="col-sm-2" for="wp_db_backup_destination_bb"><?php echo esc_html__('Enable Blackblaze Destination', 'wpdbbkp') ?></label>
 					<div class="col-sm-6">
-						<input type="checkbox" id="wp_db_backup_destination_bb" <?php echo (  1 == $wp_db_backup_destination_bb ) ? 'checked' : ''; ?> name="wp_db_backup_destination_bb">
+						<input type="checkbox" id="wp_db_backup_destination_bb" <?php echo (  1 == $wpdbbkp_destination_bb ) ? 'checked' : ''; ?> name="wp_db_backup_destination_bb">
 				</div>
 
 				</div>
@@ -172,7 +174,7 @@ if($wp_db_backup_destination_bb == 1 && !empty($wpdb_dest_bb_s3_bucket) && !empt
 					<label class="col-sm-2" for="wpdb_dest_bb_s3_bucket"><?php echo esc_html__('Enable Incremental backup', 'wpdbbkp') ?></label>
 					<div class="col-sm-10">
 
-					<input type="checkbox" <?php echo esc_attr( $incremental_backup ); ?> name="wp_db_incremental_backup"><br><?php echo esc_html__('Only updated files will be backedup after first backup is complete. This feature is currently available for  Blackblaze backup method', 'wpdbbkp') ?>
+					<input type="checkbox" <?php echo esc_attr( $wpdbbkp_incremental_backup ); ?> name="wp_db_incremental_backup"><br><?php echo esc_html__('Only updated files will be backedup after first backup is complete. This feature is currently available for  Blackblaze backup method', 'wpdbbkp') ?>
 					</div>
 					
 				</div>

@@ -1,4 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
+// phpcs:ignoreFile -- third party library
 /* 	== DOCUMENTATION ==	
   For documentation and updates, visit http://abeautifulsite.net/notebook.php?article=21
  */

@@ -32,7 +32,7 @@ class Wpdb_Admin {
 		add_filter( 'cron_schedules', array( $this, 'wp_db_backup_cron_schedules' ) );
 		add_action( 'wpdbbkp_db_backup_event', array( $this, 'wp_db_backup_event_process' ) );
 		add_action( 'init', array( $this, 'wp_db_backup_scheduler_activation' ) );
-		add_action( 'wp_db_backup_completed', array( $this, 'wp_db_backup_completed_local' ), 12 );
+		add_action( 'wpdbbkp_db_backup_completed', array( $this, 'wp_db_backup_completed_local' ), 12 );
 		add_action('admin_enqueue_scripts', array( $this, 'wpdbbkp_admin_style'));
 		add_action('admin_enqueue_scripts', array( $this, 'wpdbbkp_admin_newsletter_script'));
 		add_action('wp_ajax_wpdbbkp_send_query_message', array( $this, 'wpdbbkp_send_query_message'));
@@ -158,7 +158,7 @@ class Wpdb_Admin {
 			delete_option('wpdbbkp_activation_redirect');
 			if(!isset($_GET['activate-multi']))
 			{
-				wp_redirect("admin.php?page=wp-database-backup");
+				wp_safe_redirect("admin.php?page=wp-database-backup");
 			}
 		}
 
@@ -183,7 +183,7 @@ class Wpdb_Admin {
 
 					if ( isset( $_POST['wpsetting'] ) ) {
 						if ( isset( $_POST['wp_local_db_backup_count'] ) ) {
-							update_option( 'wp_local_db_backup_count', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wp_local_db_backup_count'] ) ) ) , false);
+							update_option( 'wp_local_db_backup_count', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wp_local_db_backup_count'] ) ) ) , false);
 						}
 
 						if ( isset( $_POST['wp_db_log'] ) ) {
@@ -222,11 +222,11 @@ class Wpdb_Admin {
 					}
 
 					if ( true === isset( $_POST['wp_db_local_backup_path'] ) ) {
-						update_option( 'wp_db_local_backup_path', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wp_db_local_backup_path'] ) ) ) );
+						update_option( 'wp_db_local_backup_path', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wp_db_local_backup_path'] ) ) ) );
 					}
 
 					if ( isset( $_POST['wp_db_backup_email_id'] ) ) {
-						update_option( 'wp_db_backup_email_id', wp_db_filter_data( sanitize_email( wp_unslash( $_POST['wp_db_backup_email_id'] ) ) ) , false);
+						update_option( 'wp_db_backup_email_id', wpdbbkp_filter_data( sanitize_email( wp_unslash( $_POST['wp_db_backup_email_id'] ) ) ) , false);
 					}
 
 					if ( isset( $_POST['wp_db_backup_email_attachment'] ) ) {
@@ -290,17 +290,17 @@ class Wpdb_Admin {
 						}
 					
 						if ( isset( $_POST['anonymization_type'] ) ) {
-						  update_option( 'bkpforwp_anonymization_type', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['anonymization_type'] ) ) ) );
+						  update_option( 'bkpforwp_anonymization_type', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['anonymization_type'] ) ) ) );
 						  
 						}
 					
 						if ( isset( $_POST['anonymization_pass'] )) {
-						  update_option( 'bkpforwp_anonymization_pass', wp_db_filter_data( sanitize_text_field( wp_unslash($_POST['anonymization_pass'] ) ) ) );
+						  update_option( 'bkpforwp_anonymization_pass', wpdbbkp_filter_data( sanitize_text_field( wp_unslash($_POST['anonymization_pass'] ) ) ) );
 						  
 						}
 					
 						if ( isset( $_POST['backup_encryption_pass'] )) {
-						  update_option( 'bkpforwp_backup_encryption_pass', wp_db_filter_data( sanitize_text_field( wp_unslash($_POST['backup_encryption_pass'] ) ) ) );
+						  update_option( 'bkpforwp_backup_encryption_pass', wpdbbkp_filter_data( sanitize_text_field( wp_unslash($_POST['backup_encryption_pass'] ) ) ) );
 						  
 						}
 					  }
@@ -526,17 +526,17 @@ class Wpdb_Admin {
 							
 									if (!$db_exists) {
 										//phpcs:ignore -- Create DB if it doesn't exist
-										$wpdb->query($wpdb->prepare("CREATE DATABASE IF NOT EXISTS `%s`", $database_name));
+										$wpdb->query( 'CREATE DATABASE IF NOT EXISTS `' . esc_sql( $database_name ) . '`' );
 										$wpdb->select($database_name);
 									}
 									//phpcs:ignore -- Show tables from database
-									$tables = $wpdb->get_col($wpdb->prepare("SHOW TABLES FROM `%s`", $database_name));
+									$tables = $wpdb->get_col( 'SHOW TABLES FROM `' . esc_sql( $database_name ) . '`' );
 				
 							  
 								if (!empty($tables)) {
 										foreach ($tables as $table_name) {
 												//phpcs:ignore -- delete tables before restore
-												$wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS `%s`", $table_name));
+												$wpdb->query( 'DROP TABLE IF EXISTS `' . esc_sql( $table_name ) . '`' );
 										}
 								}
 							
@@ -1091,7 +1091,7 @@ if ( true === isset( $_POST['wpdb_cd_s3'] ) && 'Y' === $_POST['wpdb_cd_s3'] ) {
 	}
 
 	if ( true === isset( $_POST['wpdb_clouddrive_token'] ) ) {
-		update_option( 'wpdb_clouddrive_token', wp_db_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_clouddrive_token'] ) ) ), false );
+		update_option( 'wpdb_clouddrive_token', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_POST['wpdb_clouddrive_token'] ) ) ), false );
 	}
 	
 	// Put a "settings updated" message on the screen.
@@ -1179,7 +1179,7 @@ text-align: center;">
 		$wpdbbkp_export_notify = get_option('wpdbbkp_export_notify',false);
 		if($wpdbbkp_export_notify==false){
 		?>
-			<a href="#" id="wpdbbkp-create-full-export" class="btn btn-primary"> <span class="glyphicon glyphicon-plus-sign"></span> <?=esc_html__('Start Export', 'wpdbbkp')?></a>
+			<a href="#" id="wpdbbkp-create-full-export" class="btn btn-primary"> <span class="glyphicon glyphicon-plus-sign"></span> <?php echo esc_html__('Start Export', 'wpdbbkp');?></a>
 		<?php }?>
 		<div id="wpdb-export-process" style="display:none">
 			<div class="text-center"><img width="50" height="50" src="<?php echo esc_url(WPDB_PLUGIN_URL . "/assets/images/icon_loading.gif"); /* phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage */ ?>">
@@ -1230,9 +1230,9 @@ text-align: center;">
 	<div style="border: 5px dotted #5cb85c;margin: 0 auto;padding: 20px;border-radius: 10px;
 text-align: center;">
 		<input type="file"  accept=".zip,.rar,.7zip" id="wpdbbkp-upload-import" style="display:none"y/>
-		<a href="#" id="wpdbbkp-create-full-import" class="btn btn-success"> <span class="glyphicon glyphicon-plus-sign"></span> <?=esc_html__('Select File to Import', 'wpdbbkp')?></a>
-		<a href="#" id="wpdbbkp-start-full-import" class="btn btn-success" style="display:none"> <span class="glyphicon glyphicon-plus-sign"></span> <?=esc_html__('Start Import', 'wpdbbkp')?></a>
-		<a href="#" id="wpdbbkp-stop-full-import" class="btn btn-danger wpdbbkp-cancel-btn" style="display:none;margin-bottom: 20px;margin-left: 10px;" > <span class="glyphicon glyphicon-ban"></span><?= esc_html__('Stop Backup Process', 'wpdbbkp')?></a>
+		<a href="#" id="wpdbbkp-create-full-import" class="btn btn-success"> <span class="glyphicon glyphicon-plus-sign"></span> <?php echo esc_html__('Select File to Import', 'wpdbbkp');?></a>
+		<a href="#" id="wpdbbkp-start-full-import" class="btn btn-success" style="display:none"> <span class="glyphicon glyphicon-plus-sign"></span> <?php echo esc_html__('Start Import', 'wpdbbkp');?></a>
+		<a href="#" id="wpdbbkp-stop-full-import" class="btn btn-danger wpdbbkp-cancel-btn" style="display:none;margin-bottom: 20px;margin-left: 10px;" > <span class="glyphicon glyphicon-ban"></span><?php  echo esc_html__('Stop Backup Process', 'wpdbbkp');?></a>
 		<p style="font-weight: bold;font-size: 14px;margin-top: 5px;color:#5cb85c" id="imported-file-name"></p>
 
 		<div id="wpdb-import-process" style="display:none">
@@ -1460,7 +1460,7 @@ text-align: center;">
 			
                 <h2>Trusted by more that 30000+ Users!</h2>
                 <p>More than 30k Websites, Blogs & E-Commerce website are powered by our Backup for WP making it the #1 Rated Backup for WP plugin in WordPress Community.</p>
-                <a href="https://wordpress.org/support/plugin/wp-database-backup/reviews/?filter=5" target="_blank">Read The Reviews</a>
+                <a href="https://wordpress.org/support/plugin/wp-database-backup/reviews" target="_blank">Read The Reviews</a>
             </div>
         </div><!--/ .Backup for WP-upg -->
         <div class="ampfaq">
@@ -2220,7 +2220,7 @@ text-align: center;">
 	*/
 	public function wp_db_backup_premium_interface_render()
 	{
-		wp_redirect("https://backupforwp.com/pricing/#price");
+		wp_safe_redirect("https://backupforwp.com/pricing/#price");
 		exit;
 	}
 
@@ -2973,13 +2973,12 @@ text-align: center;">
 		} else {
 			$log_message = '';
 		}
-		error_log('logging enabled '.$log_message);
 		$wp_db_remove_local_backup = get_option( 'wp_db_remove_local_backup' );
 		$destination               = ( 1 === (int) $wp_db_remove_local_backup ) ? '' : 'Local, ';
 
 		$args = array( $details['filename'], $details['dir'], $log_message, $details['size'], $destination );
 		
-		do_action_ref_array( 'wp_db_backup_completed', array( &$args ) );
+		do_action_ref_array( 'wpdbbkp_db_backup_completed', array( &$args ) );
 		
 		// Ensure enabled destinations are reflected in the saved Destination string for table display
 		// Note: Hook handlers may have already added destinations, so check before appending

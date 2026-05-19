@@ -13,12 +13,12 @@ if (true === isset($_GET['notification']) && true === isset($_GET['_wpnonce']) &
 
 	<div class="text-center wpdbbkp_notification"><img width="50" height="50" src="<?php echo esc_url(WPDB_PLUGIN_URL. "/assets/images/success.png"); /* phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage */ ?>">
 		<h4 class="text-success"><?php if ((isset($_GET['notification']) && 'create' === $_GET['notification']) || $wpdbbkp_bg_notify=='create') {
-							$backup_list = get_option('wp_db_backup_backups');
-							if(!empty($backup_list) && is_array($backup_list)){
-								$download_backup = end($backup_list);
-								if($download_backup && !empty($download_backup) && isset($download_backup['url']))
+							$wpdbbkp_backup_list = get_option('wp_db_backup_backups');
+							if(!empty($wpdbbkp_backup_list) && is_array($wpdbbkp_backup_list)){
+								$wpdbbkp_download_backup = end($wpdbbkp_backup_list);
+								if($wpdbbkp_download_backup && !empty($wpdbbkp_download_backup) && isset($wpdbbkp_download_backup['url']))
 								{ 
-									$backup_link = '<a href="' . esc_url(admin_url('?wpdbbkp_download='.basename($download_backup['url']))) . '" style="color: #21759B;">' . __('Click Here to Download Backup.', 'wpdbbkp') . '</a>';
+									$wpdbbkp_backup_link = '<a href="' . esc_url(admin_url('?wpdbbkp_download='.basename($wpdbbkp_download_backup['url']))) . '" style="color: #21759B;">' . __('Click Here to Download Backup.', 'wpdbbkp') . '</a>';
 								}
 							}
 							
@@ -42,8 +42,8 @@ if (true === isset($_GET['notification']) && true === isset($_GET['_wpnonce']) &
 							esc_html_e('Backup Setting Saved Successfully', 'wpdbbkp');
 						}
 			?></h4>
-			<?php if (isset($_GET['notification']) && 'create' === $_GET['notification'] && isset($backup_link)) { ?>
-		<h5 class="text-success"><strong><?php echo wp_kses_post($backup_link); ?> </strong></h5>
+			<?php if (isset($_GET['notification']) && 'create' === $_GET['notification'] && isset($wpdbbkp_backup_link)) { ?>
+		<h5 class="text-success"><strong><?php echo wp_kses_post($wpdbbkp_backup_link); ?> </strong></h5>
 		<?php } ?>
 	</div>
 <?php } ?>

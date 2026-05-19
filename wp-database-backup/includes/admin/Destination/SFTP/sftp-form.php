@@ -21,46 +21,46 @@ if ( isset( $_POST[ 'sftp_submit' ] ) && 'Save' === $_POST[ 'sftp_submit' ] ) {
 	}
 	// Read their posted value.
 
-	$option_to_save =array();
+	$wpdbbkp_option_to_save =array();
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'host' ] ) ) {
-		$option_to_save['host'] = sanitize_text_field(  wp_unslash($_POST['wp_db_backup_sftp_details'][ 'host' ] ) );
+		$wpdbbkp_option_to_save['host'] = sanitize_text_field(  wp_unslash($_POST['wp_db_backup_sftp_details'][ 'host' ] ) );
 	}
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'port' ] ) ) {
-		$option_to_save['port'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['port']  ));
+		$wpdbbkp_option_to_save['port'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['port']  ));
 	}else{
-		$option_to_save['port'] = 22;
+		$wpdbbkp_option_to_save['port'] = 22;
 	}
 
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'username' ] ) ) {
-		$option_to_save['username'] = sanitize_text_field(wp_unslash( $_POST['wp_db_backup_sftp_details']['username']  ));
+		$wpdbbkp_option_to_save['username'] = sanitize_text_field(wp_unslash( $_POST['wp_db_backup_sftp_details']['username']  ));
 	}
 
 	$wpdbbkp_auth_type_ = isset($_POST['wp_db_backup_sftp_details'][ 'auth_type' ])?sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details'][ 'auth_type' ])):'password';
 
-	$option_to_save['auth_type'] = $wpdbbkp_auth_type_;
+	$wpdbbkp_option_to_save['auth_type'] = $wpdbbkp_auth_type_;
 
 	if($wpdbbkp_auth_type_ == 'password'){
 		if ( isset( $_POST['wp_db_backup_sftp_details'][ 'password' ] ) ) {
-			$option_to_save['password'] = sanitize_text_field(  wp_unslash($_POST['wp_db_backup_sftp_details']['password']  ));
+			$wpdbbkp_option_to_save['password'] = sanitize_text_field(  wp_unslash($_POST['wp_db_backup_sftp_details']['password']  ));
 		}
 	}
 
 	if($wpdbbkp_auth_type_ == 'key'){
 
 		if ( isset( $_POST['wp_db_backup_sftp_details'][ 'sftp_key' ] )) {
-			$option_to_save['sftp_key'] = sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details']['sftp_key']  ));
+			$wpdbbkp_option_to_save['sftp_key'] = sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details']['sftp_key']  ));
 		}
 		if ( isset( $_POST['wp_db_backup_sftp_details'][ 'key_password' ] ) ) {
-			$option_to_save['key_password'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['key_password']  ));
+			$wpdbbkp_option_to_save['key_password'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['key_password']  ));
 		}
 	}
 	
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'directory' ] ) ) {
-		$option_to_save['directory'] = sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details']['directory'])   );
+		$wpdbbkp_option_to_save['directory'] = sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details']['directory'])   );
 	}
 
 	// Save the posted value in the database.
-	update_option( 'wp_db_backup_sftp_details', wp_db_filter_data( $option_to_save ) ,false);
+	update_option( 'wp_db_backup_sftp_details', wpdbbkp_filter_data( $wpdbbkp_option_to_save ) ,false);
 
 	if ( isset( $_POST['wp_db_backup_destination_SFTP'] ) ) {
 		update_option( 'wp_db_backup_destination_SFTP', 1 , false);
@@ -86,63 +86,63 @@ if ( isset( $_POST[ 'sftp_test'  ] ) && 'Test Connection' === $_POST[ 'sftp_test
 	}
 	include plugin_dir_path( __FILE__ ) . 'test-sftp.php';
 	// update all options while we're at it.
-	$option_to_save =array();
+	$wpdbbkp_option_to_save =array();
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'host' ] ) ) {
-		$option_to_save['host'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details'][ 'host' ] ) );
+		$wpdbbkp_option_to_save['host'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details'][ 'host' ] ) );
 	}
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'port' ] ) ) {
-		$option_to_save['port'] = sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details']['port'] ) );
+		$wpdbbkp_option_to_save['port'] = sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details']['port'] ) );
 	}else{
-		$option_to_save['port'] = 22;
+		$wpdbbkp_option_to_save['port'] = 22;
 	}
 
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'username' ] ) ) {
-		$option_to_save['username'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['username'] ) );
+		$wpdbbkp_option_to_save['username'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['username'] ) );
 	}
 
 	$wpdbbkp_auth_type_ = isset($_POST['wp_db_backup_sftp_details'][ 'auth_type' ])?sanitize_text_field( wp_unslash($_POST['wp_db_backup_sftp_details'][ 'auth_type' ])):'password';
 
-	$option_to_save['auth_type'] = $wpdbbkp_auth_type_;
+	$wpdbbkp_option_to_save['auth_type'] = $wpdbbkp_auth_type_;
 
 	if($wpdbbkp_auth_type_ == 'password'){
 		if ( isset( $_POST['wp_db_backup_sftp_details'][ 'password' ] ) ) {
-			$option_to_save['password'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['password'] ) );
+			$wpdbbkp_option_to_save['password'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['password'] ) );
 		}
 	}
 
 	if($wpdbbkp_auth_type_ == 'key'){
 
 		if ( isset( $_POST['wp_db_backup_sftp_details'][ 'sftp_key' ] )) {
-			$option_to_save['sftp_key'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['sftp_key'] ) );
+			$wpdbbkp_option_to_save['sftp_key'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['sftp_key'] ) );
 		}
 
 		if ( isset( $_POST['wp_db_backup_sftp_details'][ 'key_password' ] ) ) {
-			$option_to_save['key_password'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['key_password'] ) );
+			$wpdbbkp_option_to_save['key_password'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['key_password'] ) );
 		}
 	}
 	
 	if ( isset( $_POST['wp_db_backup_sftp_details'][ 'directory' ] ) ) {
-		$option_to_save['directory'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['directory'] ) );
+		$wpdbbkp_option_to_save['directory'] = sanitize_text_field( wp_unslash( $_POST['wp_db_backup_sftp_details']['directory'] ) );
 	}
 	// Save the posted value in the database.
-	update_option( 'wp_db_backup_sftp_details', wp_db_filter_data( $option_to_save ) ,false);
+	update_option( 'wp_db_backup_sftp_details', wpdbbkp_filter_data( $wpdbbkp_option_to_save ) ,false);
 
-	$result = wpdbbkp_test_sftp();
+	$wpdbbkp_result = wpdbbkp_test_sftp();
 
-	if ( 'OK' !== $result ) {
+	if ( 'OK' !== $wpdbbkp_result ) {
 		?>
 		<div class="error"><p><strong><?php echo esc_html__('connection has failed!', 'wpdbbkp') ?><br /></strong></p>
-			<?php echo esc_html( $result ) . '<br /><br />'; ?>
+			<?php echo esc_html( $wpdbbkp_result ) . '<br /><br />'; ?>
 		</div>
 	<?php } else { ?>
 
-		<div class="updated"><p><strong><?php echo esc_html__('Connected to ', 'wpdbbkp') ?><?php echo esc_html( $option_to_save['host']); ?>, <?php echo esc_html__('for user', 'wpdbbkp') ?> <?php echo esc_html( $option_to_save['username']); ?></strong></p></div>
+		<div class="updated"><p><strong><?php echo esc_html__('Connected to ', 'wpdbbkp') ?><?php echo esc_html( $wpdbbkp_option_to_save['host']); ?>, <?php echo esc_html__('for user', 'wpdbbkp') ?> <?php echo esc_html( $wpdbbkp_option_to_save['username']); ?></strong></p></div>
 		<?php
 	} // end if.
 } // end if.
 
 // Read in existing option value from database
-$wp_db_backup_destination_sftp = wp_db_filter_data( get_option( 'wp_db_backup_destination_SFTP',false) );
+$wpdbbkp_destination_sftp = wpdbbkp_filter_data( get_option( 'wp_db_backup_destination_SFTP',false) );
 $wpdbbkp_sftp_details	=	get_option( 'wp_db_backup_sftp_details',array());
 $wpdbbkp_sftp_authtype = isset($wpdbbkp_sftp_details['auth_type'])?$wpdbbkp_sftp_details['auth_type']:'password';
 ?>
@@ -151,14 +151,13 @@ $wpdbbkp_sftp_authtype = isset($wpdbbkp_sftp_details['auth_type'])?$wpdbbkp_sftp
 	}</style>
 <p><?php echo esc_html__('Enter your SFTP details for your offsite backup repository. Leave these blank for local backups or Disable SFTP Destination.', 'wpdbbkp') ?></p>		
 <form  class="form-group" name="form1" method="post" action="">
-	<input type="hidden" name="<?php echo esc_attr( $hidden_field_name ); ?>" value="Y">
 	<input name="wpdbbackup_update_setting" type="hidden" value="<?php echo esc_attr( wp_create_nonce( 'wpdbbackup-update-setting' ) ); ?>" />
 <?php wp_nonce_field( 'wp-database-backup' ); ?>
 
 	<div class="row form-group">
 		<label class="col-sm-2" for="wp_db_backup_destination_SFTP"><?php echo esc_html__('Enable SFTP Destination', 'wpdbbkp') ?></label>
 		<div class="col-sm-6">
-			<input type="checkbox" id="wp_db_backup_destination_SFTP" <?php echo ( isset( $wp_db_backup_destination_sftp ) && 1 === (int) $wp_db_backup_destination_sftp ) ? 'checked' : ''; ?> name="wp_db_backup_destination_SFTP">
+			<input type="checkbox" id="wp_db_backup_destination_SFTP" <?php echo ( isset( $wpdbbkp_destination_sftp ) && 1 === (int) $wpdbbkp_destination_sftp ) ? 'checked' : ''; ?> name="wp_db_backup_destination_SFTP">
 		</div>
 	</div>
 

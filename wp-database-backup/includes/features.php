@@ -1,13 +1,28 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Log backup/restore messages when WP_DEBUG_LOG is enabled.
+ *
+ * @param string $message Log message.
+ */
+function wpdbbkp_log( $message ) {
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional backup operation logging.
+		error_log( $message );
+	}
+}
 
 // Anonimization code
 add_filter('wpdbbkp_process_db_fields', 'bkpforwp_anonimize_database', 10, 3);
 add_action('wp_ajax_wpdbbkp_check_extract_status', 'wpdbbkp_check_extract_status');
 function wpdbbkp_check_extract_status(){
-  if ( !isset( $_POST['wpdbbkp_admin_security_nonce'] ) || !wp_verify_nonce( 	wp_unslash($_POST['wpdbbkp_admin_security_nonce']), 'wpdbbkp_ajax_check_nonce' ) ){ 
-    wp_send_json_success(esc_html__('Invalid nonce check.', 'wpdbbkp'));
-    return;  
- }
+  if ( ! isset( $_POST['wpdbbkp_admin_security_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wpdbbkp_admin_security_nonce'] ), 'wpdbbkp_ajax_check_nonce' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce.
+    wp_send_json_success( esc_html__( 'Invalid nonce check.', 'wpdbbkp' ) );
+    return;
+  }
   $get_progress = get_transient('wpdbbkp_track_progress');
   if($get_progress==false){
     wp_send_json_success(['success'=>1,'message'=>esc_html__('Starring Extraction Process', 'wpdbbkp')]);
@@ -21,24 +36,28 @@ function wpdbbkp_check_extract_status(){
 
 add_action('wp_ajax_wpdbbkp_upload_site_chunk', 'wpdbbkp_upload_site_chunk');
 function wpdbbkp_upload_site_chunk() {
-    if ( !isset( $_POST['wpdbbkp_admin_security_nonce'] ) || !wp_verify_nonce( 	wp_unslash($_POST['wpdbbkp_admin_security_nonce']), 'wpdbbkp_ajax_check_nonce' ) ){ 
-      wp_send_json_success(esc_html__('Invalid nonce check.', 'wpdbbkp'));
-      return;  
-  }
-   if (!isset($_FILES['file']) || !isset($_POST['fileName']) || !isset($_POST['offset'])) {
-      wp_send_json_error("Invalid request.");
-  }
+    if ( ! isset( $_POST['wpdbbkp_admin_security_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wpdbbkp_admin_security_nonce'] ), 'wpdbbkp_ajax_check_nonce' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce.
+      wp_send_json_success( esc_html__( 'Invalid nonce check.', 'wpdbbkp' ) );
+      return;
+    }
+    if ( ! isset( $_FILES['file'], $_POST['fileName'], $_POST['offset'] ) ) {
+      wp_send_json_error( esc_html__( 'Invalid request.', 'wpdbbkp' ) );
+    }
 
-  $upload_dir = WP_CONTENT_DIR . '/uploads/wpdbbkp/temp';
-  if (!file_exists($upload_dir)) {
-      mkdir($upload_dir, 0755, true);
-  }
+    $upload_dir = WP_CONTENT_DIR . '/uploads/wpdbbkp/temp';
+    wp_mkdir_p( $upload_dir );
 
-  $file_name = sanitize_file_name($_POST['fileName']);
-  $file_path = $upload_dir . '/' . $file_name;
+    $file_name = sanitize_file_name( wp_unslash( $_POST['fileName'] ) );
+    $file_path = $upload_dir . '/' . $file_name;
 
-  // Append chunk to the file
-  file_put_contents($file_path, file_get_contents($_FILES['file']['tmp_name']), FILE_APPEND);
+    $chunk_tmp = isset( $_FILES['file']['tmp_name'] ) ? $_FILES['file']['tmp_name'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated with is_uploaded_file().
+
+    if ( empty( $chunk_tmp ) || ! is_uploaded_file( $chunk_tmp ) ) {
+      wp_send_json_error( esc_html__( 'Invalid upload.', 'wpdbbkp' ) );
+    }
+
+    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Appending validated upload chunk.
+    file_put_contents( $file_path, file_get_contents( $chunk_tmp ), FILE_APPEND );
 
   wp_send_json_success(esc_html__('Chunk uploaded successfully.', 'wpdbbkp'));
 }
@@ -47,19 +66,21 @@ function wpdbbkp_extract_uploaded_site() {
 
   try {
 
-      if ( !isset( $_POST['wpdbbkp_admin_security_nonce'] ) || !wp_verify_nonce( 	wp_unslash($_POST['wpdbbkp_admin_security_nonce']), 'wpdbbkp_ajax_check_nonce' ) ){ 
+      if ( ! isset( $_POST['wpdbbkp_admin_security_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wpdbbkp_admin_security_nonce'] ), 'wpdbbkp_ajax_check_nonce' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce.
 
-        wp_send_json_success(esc_html__('Invalid nonce check.', 'wpdbbkp'));
+        wp_send_json_success( esc_html__( 'Invalid nonce check.', 'wpdbbkp' ) );
 
-        return;  
+        return;
 
-    }
+      }
 
-      ini_set('max_execution_time', 0); // No time limit
+      // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Required for large backup extraction.
+      ini_set( 'max_execution_time', '0' );
 
-      set_time_limit(0);
+      // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Required for large backup extraction.
+      set_time_limit( 0 );
 
-      error_log("AJAX extraction started");
+      wpdbbkp_log( 'AJAX extraction started' );
 
 
 
@@ -73,7 +94,7 @@ function wpdbbkp_extract_uploaded_site() {
 
       $upload_dir = WP_CONTENT_DIR . '/uploads/wpdbbkp/temp';
 
-      $backup_file = $upload_dir . '/' . sanitize_file_name($_POST['fileName']);
+      $backup_file = $upload_dir . '/' . sanitize_file_name( wp_unslash( $_POST['fileName'] ) );
 
 
 
@@ -97,15 +118,11 @@ function wpdbbkp_extract_uploaded_site() {
 
 
 
-      if (!file_exists($extract_path)) {
-
-          mkdir($extract_path, 0755, true);
-
-      }
+      wp_mkdir_p( $extract_path );
 
 
 
-      error_log("ZIP contains " . $zip->numFiles . " files");
+      wpdbbkp_log("ZIP contains " . $zip->numFiles . " files");
 
 
 
@@ -127,7 +144,7 @@ function wpdbbkp_extract_uploaded_site() {
 
       }
 
-      error_log("Detected root folder: $root_folder");
+      wpdbbkp_log("Detected root folder: $root_folder");
 
 
 
@@ -153,13 +170,13 @@ function wpdbbkp_extract_uploaded_site() {
 
                   set_transient('wpdbbkp_track_progress', $entry, 3600);
 
-                  error_log("Successfully extracted: $entry");
+                  wpdbbkp_log("Successfully extracted: $entry");
 
 
 
               } else {
 
-                  error_log("Extraction failed: $entry");
+                  wpdbbkp_log("Extraction failed: $entry");
 
               }
 
@@ -191,7 +208,7 @@ function wpdbbkp_extract_uploaded_site() {
 
       } else {
 
-          error_log("Plugins directory not found in extracted folder.");
+          wpdbbkp_log("Plugins directory not found in extracted folder.");
 
       }
 
@@ -203,7 +220,7 @@ function wpdbbkp_extract_uploaded_site() {
 
       } else {
 
-          error_log("Themes directory not found in extracted folder OR extraction failed.");
+          wpdbbkp_log("Themes directory not found in extracted folder OR extraction failed.");
 
       }
 
@@ -218,25 +235,25 @@ function wpdbbkp_extract_uploaded_site() {
           set_transient('wpdbbkp_track_progress', 'Migrating Database...', 3600);
 
           $wp_config_prefix = wpdbbkp_get_wp_config_table_prefix();
-          error_log("Sql File .".$sql_file);
+          wpdbbkp_log("Sql File .".$sql_file);
           wpdbbkp_update_sql_table_prefix($sql_file);
 
           wpdbbkp_restore_database($sql_file);
 
       } else {
 
-          error_log("No SQL file found in extracted folder.");
+          wpdbbkp_log("No SQL file found in extracted folder.");
 
       }
 
      
 
-      error_log("Extraction completed successfully");
+      wpdbbkp_log("Extraction completed successfully");
 
       $wpdbbkp_folder = WP_CONTENT_DIR . '/uploads/wpdbbkp';
       if (file_exists($wpdbbkp_folder)) {
           wpdbbkp_delete_folder($wpdbbkp_folder);
-          error_log("Deleted wpdbbkp folder after successful migration.");
+          wpdbbkp_log("Deleted wpdbbkp folder after successful migration.");
       }
       set_transient('wpdbbkp_track_progress', 'Process Completed', 3600);
       wp_send_json_success(esc_html__('Plugins, Themes, Database & Table Prefix Updated!', 'wpdbbkp'));
@@ -245,7 +262,7 @@ function wpdbbkp_extract_uploaded_site() {
 
   } catch (Exception $e) {
 
-      error_log("Error: " . $e->getMessage());
+      wpdbbkp_log("Error: " . $e->getMessage());
 
       wp_send_json_error($e->getMessage());
 
@@ -253,24 +270,46 @@ function wpdbbkp_extract_uploaded_site() {
 
 }
 
-function wpdbbkp_delete_folder($folder_path) {
-  if (!is_dir($folder_path)) {
-      return;
-  }
+/**
+ * Initialize WP_Filesystem API.
+ *
+ * @return bool
+ */
+function wpdbbkp_init_filesystem() {
+	global $wp_filesystem;
+	if ( ! empty( $wp_filesystem ) ) {
+		return true;
+	}
+	if ( ! function_exists( 'WP_Filesystem' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+	}
+	return WP_Filesystem();
+}
 
-  $files = array_diff(scandir($folder_path), array('.', '..'));
+function wpdbbkp_delete_folder( $folder_path ) {
+	if ( ! is_dir( $folder_path ) ) {
+		return;
+	}
 
-  foreach ($files as $file) {
-      $file_path = $folder_path . DIRECTORY_SEPARATOR . $file;
-      if (is_dir($file_path)) {
-          wpdbbkp_delete_folder($file_path);
-      } else {
-          set_transient('wpdbbkp_track_progress', 'Cleaning : '.$file_path, 3600);
-          unlink($file_path);
-      }
-  }
+	if ( ! wpdbbkp_init_filesystem() ) {
+		return;
+	}
 
-  rmdir($folder_path);
+	global $wp_filesystem;
+
+	$files = array_diff( scandir( $folder_path ), array( '.', '..' ) );
+
+	foreach ( $files as $file ) {
+		$file_path = $folder_path . DIRECTORY_SEPARATOR . $file;
+		if ( is_dir( $file_path ) ) {
+			wpdbbkp_delete_folder( $file_path );
+		} else {
+			set_transient( 'wpdbbkp_track_progress', 'Cleaning : ' . $file_path, 3600 );
+			$wp_filesystem->delete( $file_path );
+		}
+	}
+
+	$wp_filesystem->rmdir( $folder_path );
 }
 
 
@@ -299,7 +338,7 @@ function wpdbbkp_find_sql_file($directory) {
 function wpdbbkp_get_wp_config_table_prefix() {
 
     $config_file = ABSPATH . 'wp-config.php';
-    error_log("[ERROR] Config Path: $config_file");
+    wpdbbkp_log("[ERROR] Config Path: $config_file");
     if (!file_exists($config_file)) {
 
         return 'wp_';
@@ -319,37 +358,53 @@ function wpdbbkp_get_wp_config_table_prefix() {
 }
 function wpdbbkp_update_sql_table_prefix($sql_file) {
   if (!file_exists($sql_file)) {
-      die("❌ ERROR: SQL file not found: $sql_file\n");
+      die( esc_html( sprintf(
+          /* translators: %s: path to the SQL file */
+          __( 'ERROR: SQL file not found: %s', 'wpdbbkp' ),
+          $sql_file
+      ) ) );
   }
 
   $sql_content = file_get_contents($sql_file);
 
   // Find wp-config.php
-  $wp_config_path = find_wp_config();
+  $wp_config_path = wpdbbkp_find_wp_config();
   if (!$wp_config_path) {
-      die("❌ ERROR: wp-config.php not found!\n");
+      die(esc_html__("❌ ERROR: wp-config.php not found!\n", 'wpdbbkp'));
   }
 
   // Extract table prefix from wp-config.php
   $config_content = file_get_contents($wp_config_path);
   if (preg_match("/\\\$table_prefix\s*=\s*['\"]([^'\"]+)['\"]\s*;/", $config_content, $matches)) {
       $new_prefix = $matches[1];
-      echo "✅ SUCCESS: Extracted new prefix from wp-config.php: '$new_prefix'\n";
+      echo esc_html( sprintf(
+          /* translators: %s: table prefix from wp-config.php */
+          __( 'SUCCESS: Extracted new prefix from wp-config.php: %s', 'wpdbbkp' ),
+          $new_prefix
+      ) ) . "\n";
   } else {
-      die("❌ ERROR: Could not extract table prefix from wp-config.php!\n");
+      die(esc_html__("❌ ERROR: Could not extract table prefix from wp-config.php!\n", 'wpdbbkp'));
   }
 
   // Detect old prefix from the SQL file
   if (preg_match("/(CREATE TABLE|INSERT INTO|ALTER TABLE|UPDATE|DELETE FROM)\s+[`']?([a-zA-Z0-9]+?_)/i", $sql_content, $matches)) {
       $old_prefix = $matches[2];
-      echo "✅ SUCCESS: Found old prefix in SQL file: '$old_prefix'\n";
+      echo esc_html( sprintf(
+          /* translators: %s: table prefix found in the SQL file */
+          __( 'SUCCESS: Found old prefix in SQL file: %s', 'wpdbbkp' ),
+          $old_prefix
+      ) ) . "\n";
   } else {
-      die("❌ ERROR: No table prefix found in the SQL file!\n");
+      die(esc_html__("❌ ERROR: No table prefix found in the SQL file!\n", 'wpdbbkp'));
   }
 
   // Prevent replacing if old prefix is same as new prefix
   if ($old_prefix === $new_prefix) {
-      die("ℹ️ INFO: Old and new prefixes are the same ('$old_prefix'), no changes needed.\n");
+      die( esc_html( sprintf(
+          /* translators: %s: table prefix */
+          __( 'INFO: Old and new prefixes are the same (%s), no changes needed.', 'wpdbbkp' ),
+          $old_prefix
+      ) ) );
   }
 
   // Replace all occurrences of the old prefix with the new one
@@ -358,13 +413,19 @@ function wpdbbkp_update_sql_table_prefix($sql_file) {
   // Write the updated content back to the SQL file
   file_put_contents($sql_file, $sql_content);
 
-  echo "✅ SUCCESS: Table prefix updated from '$old_prefix' to '$new_prefix' in $sql_file!\n";
+  echo esc_html( sprintf(
+      /* translators: 1: old table prefix, 2: new table prefix, 3: path to SQL file */
+      __( 'SUCCESS: Table prefix updated from %1$s to %2$s in %3$s!', 'wpdbbkp' ),
+      $old_prefix,
+      $new_prefix,
+      $sql_file
+  ) ) . "\n";
 }
 
 /**
 * Finds the root wp-config.php file by checking parent directories.
 */
-function find_wp_config() {
+function wpdbbkp_find_wp_config() {
   $dir = __DIR__;
 
   while ($dir !== dirname($dir)) { // Keep going up until the root
@@ -385,54 +446,66 @@ function find_wp_config() {
 
 
 
-function wpdbbkp_move_extracted_files($source, $destination, $ignore = []) {
-  if (!file_exists($source)) return;
+function wpdbbkp_move_extracted_files( $source, $destination, $ignore = array() ) {
+	if ( ! file_exists( $source ) || ! wpdbbkp_init_filesystem() ) {
+		return;
+	}
 
-  if (!file_exists($destination)) {
-      mkdir($destination, 0755, true);
-  }
+	global $wp_filesystem;
 
-  $files = array_diff(scandir($source), array('.', '..'));
-  foreach ($files as $file) {
-      $srcFile = rtrim($source, '/') . '/' . $file;
-      $destFile = rtrim($destination, '/') . '/' . $file;
+	wp_mkdir_p( $destination );
 
-      if (in_array($file, $ignore)) {
-          continue;
-      }
+	$files = array_diff( scandir( $source ), array( '.', '..' ) );
+	foreach ( $files as $file ) {
+		$src_file  = rtrim( $source, '/' ) . '/' . $file;
+		$dest_file = rtrim( $destination, '/' ) . '/' . $file;
 
-      set_transient('wpdbbkp_track_progress', 'Copying: ' . $destFile, 3600);
+		if ( in_array( $file, $ignore, true ) ) {
+			continue;
+		}
 
-      if (is_dir($srcFile)) {
-          if (file_exists($destFile)) {
-              wpdbbkp_delete_directory($destFile);
-          }
-          rename($srcFile, $destFile);
-      } else {
-          if (file_exists($destFile)) {
-              unlink($destFile);
-          }
-          rename($srcFile, $destFile);
-      }
-  }
+		set_transient( 'wpdbbkp_track_progress', 'Copying: ' . $dest_file, 3600 );
+
+		if ( is_dir( $src_file ) ) {
+			if ( $wp_filesystem->exists( $dest_file ) ) {
+				wpdbbkp_delete_directory( $dest_file );
+			}
+			$wp_filesystem->move( $src_file, $dest_file, true );
+		} else {
+			if ( $wp_filesystem->exists( $dest_file ) ) {
+				$wp_filesystem->delete( $dest_file );
+			}
+			$wp_filesystem->move( $src_file, $dest_file, true );
+		}
+	}
 }
 
-function wpdbbkp_delete_directory($dir) {
-  if (!is_dir($dir)) {
-      return unlink($dir);
-  }
+function wpdbbkp_delete_directory( $dir ) {
+	if ( ! wpdbbkp_init_filesystem() ) {
+		return false;
+	}
 
-  $files = array_diff(scandir($dir), array('.', '..'));
-  foreach ($files as $file) {
-      $filePath = $dir . DIRECTORY_SEPARATOR . $file;
-      if (is_dir($filePath)) {
-          wpdbbkp_delete_directory($filePath);
-      } else {
-          unlink($filePath);
-      }
-  }
+	global $wp_filesystem;
 
-  return rmdir($dir);
+	if ( ! $wp_filesystem->exists( $dir ) ) {
+		return false;
+	}
+
+	if ( ! $wp_filesystem->is_dir( $dir ) ) {
+		return $wp_filesystem->delete( $dir );
+	}
+
+	$files = array_diff( scandir( $dir ), array( '.', '..' ) );
+	foreach ( $files as $file ) {
+		$file_path = $dir . DIRECTORY_SEPARATOR . $file;
+		if ( $wp_filesystem->is_dir( $file_path ) ) {
+			wpdbbkp_delete_directory( $file_path );
+		} else {
+			$wp_filesystem->delete( $file_path );
+		}
+	}
+
+	return $wp_filesystem->rmdir( $dir );
 }
 
 
@@ -446,7 +519,7 @@ function wpdbbkp_restore_database($sql_file) {
 
   if (!file_exists($sql_file)) {
 
-      error_log("[ERROR] SQL file not found: $sql_file");
+      wpdbbkp_log("[ERROR] SQL file not found: $sql_file");
 
       return false;
 
@@ -458,7 +531,7 @@ function wpdbbkp_restore_database($sql_file) {
 
   if (!$sql_content) {
 
-      error_log("[ERROR] Failed to read SQL file: $sql_file");
+      wpdbbkp_log("[ERROR] Failed to read SQL file: $sql_file");
 
       return false;
 
@@ -466,6 +539,7 @@ function wpdbbkp_restore_database($sql_file) {
 
 
 
+  // phpcs:disable WordPress.DB.DirectDatabaseQuery -- Direct $wpdb access required for SQL backup restore.
   // Fetch old site URL from wp_options before updating
 
   $old_site_url = $wpdb->get_var("SELECT option_value FROM {$wpdb->options} WHERE option_name = 'siteurl'");
@@ -474,7 +548,7 @@ function wpdbbkp_restore_database($sql_file) {
 
   if (!$old_site_url) {
 
-      error_log("[ERROR] Failed to fetch old site URL.");
+      wpdbbkp_log("[ERROR] Failed to fetch old site URL.");
 
       return false;
 
@@ -482,7 +556,7 @@ function wpdbbkp_restore_database($sql_file) {
 
 
 
-  error_log("[INFO] Old Site URL detected: $old_site_url");
+  wpdbbkp_log("[INFO] Old Site URL detected: $old_site_url");
 
 
 
@@ -528,7 +602,7 @@ function wpdbbkp_restore_database($sql_file) {
 
                   if (strpos($table_name, $excluded) !== false) {
 
-                      error_log("[SKIPPED] Table excluded: $table_name");
+                      wpdbbkp_log("[SKIPPED] Table excluded: $table_name");
 
                       continue 2;
 
@@ -540,9 +614,9 @@ function wpdbbkp_restore_database($sql_file) {
 
               // Drop existing table before restoring
 
-              $wpdb->query("DROP TABLE IF EXISTS `$table_name`");
+              $wpdb->query( 'DROP TABLE IF EXISTS `' . esc_sql( $table_name ) . '`' );
 
-              error_log("[DROPPED] Table: $table_name");
+              wpdbbkp_log("[DROPPED] Table: $table_name");
 
           }
 
@@ -554,7 +628,7 @@ function wpdbbkp_restore_database($sql_file) {
 
               if (strpos($query, $excluded) !== false) {
 
-                  error_log("[SKIPPED] Query contains excluded table reference.");
+                  wpdbbkp_log("[SKIPPED] Query contains excluded table reference.");
 
                   continue 2;
 
@@ -564,9 +638,10 @@ function wpdbbkp_restore_database($sql_file) {
 
 
 
-          // Execute the query
+          // Execute the query (dynamic SQL from backup; prepare cannot cover arbitrary statements).
 
-          $result = $wpdb->query($query);
+          // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Restoring statements from trusted backup file.
+          $result = $wpdb->query( $query );
 
           if ($result === false) {
 
@@ -588,7 +663,7 @@ function wpdbbkp_restore_database($sql_file) {
 
       foreach ($tables as $table) {
 
-          $table_name = $table[0];
+          $table_name = esc_sql( $table[0] );
 
 
 
@@ -598,7 +673,7 @@ function wpdbbkp_restore_database($sql_file) {
 
               if (strpos($table_name, $excluded) !== false) {
 
-                  error_log("[SKIPPED] URL Replacement in: $table_name");
+                  wpdbbkp_log("[SKIPPED] URL Replacement in: $table_name");
 
                   continue 2;
 
@@ -610,30 +685,23 @@ function wpdbbkp_restore_database($sql_file) {
 
           // Get all columns for the table
 
-          $columns = $wpdb->get_results("SHOW COLUMNS FROM `$table_name`", ARRAY_A);
+          // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name escaped with esc_sql().
+          $columns = $wpdb->get_results( "SHOW COLUMNS FROM `{$table_name}`", ARRAY_A );
 
           foreach ($columns as $column) {
 
-              $column_name = $column['Field'];
+              $column_name = esc_sql( $column['Field'] );
 
 
 
-              // Update all occurrences of old URL in text-based columns
-
+              // Update all occurrences of old URL in text-based columns.
               $wpdb->query(
-
                   $wpdb->prepare(
-
-                      "UPDATE `$table_name` SET `$column_name` = REPLACE(`$column_name`, %s, %s) WHERE `$column_name` LIKE %s",
-
+                      "UPDATE `{$table_name}` SET `{$column_name}` = REPLACE(`{$column_name}`, %s, %s) WHERE `{$column_name}` LIKE %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and column identifiers escaped with esc_sql().
                       $old_site_url,
-
                       $new_site_url,
-
-                      '%' . $wpdb->esc_like($old_site_url) . '%'
-
+                      '%' . $wpdb->esc_like( $old_site_url ) . '%'
                   )
-
               );
 
           }
@@ -658,7 +726,7 @@ function wpdbbkp_restore_database($sql_file) {
 
             );
 
-            error_log("[SUCCESS] Updated wp_options with blogname from option_tmp");
+            wpdbbkp_log("[SUCCESS] Updated wp_options with blogname from option_tmp");
 
         }
       $active_plugins = $wpdb->get_var("SELECT option_value FROM {$wpdb->prefix}option_tmp WHERE option_name = 'active_plugins'");
@@ -677,13 +745,13 @@ function wpdbbkp_restore_database($sql_file) {
 
             );
 
-            error_log("[SUCCESS] Updated wp_options with active_plugins from option_tmp");
+            wpdbbkp_log("[SUCCESS] Updated wp_options with active_plugins from option_tmp");
 
         }
 
       $wpdb->query('COMMIT'); // Commit transaction
 
-      error_log("[SUCCESS] Database restoration and URL replacement completed from: $sql_file");
+      wpdbbkp_log("[SUCCESS] Database restoration and URL replacement completed from: $sql_file");
 
       return true;
 
@@ -693,7 +761,7 @@ function wpdbbkp_restore_database($sql_file) {
 
       $wpdb->query('ROLLBACK'); // Rollback in case of an error
 
-      error_log($e->getMessage());
+      wpdbbkp_log($e->getMessage());
 
       return false;
 
@@ -702,6 +770,8 @@ function wpdbbkp_restore_database($sql_file) {
       $wpdb->query('SET foreign_key_checks = 1'); // Re-enable FK checks
 
   }
+
+  // phpcs:enable WordPress.DB.DirectDatabaseQuery
 
 }
 function bkpforwp_anonimize_database($value, $table, $column)
@@ -776,7 +846,7 @@ function bkpforwp_anonimize_database($value, $table, $column)
         $check_str = implode(',', $bkpforwp_process_cols);
         if (stripos($check_str, $column) !== false) {
           $enc_pass = $anonymization_pass;
-          $encryption = new SymmetricEncryption();
+          $encryption = new WPDBBackupSymmetricEncryption();
           return str_replace($value, '<==>' . $encryption->encrypt($value, $enc_pass, $enc_pass) . '<==>', $value);
         }
 
@@ -807,7 +877,7 @@ function bkpforwp_sql_restore_replace($matches)
   $enc_pass = isset($anonymization_pass) ? $anonymization_pass : false;
   if ($enc_pass) {
     require_once 'class-symmetric-encryption.php';
-    $encryption = new SymmetricEncryption();
+    $encryption = new WPDBBackupSymmetricEncryption();
     return $encryption->decrypt($matches[0], $enc_pass, $enc_pass);
   }
   return $matches[0];

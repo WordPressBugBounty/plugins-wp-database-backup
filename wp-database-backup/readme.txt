@@ -4,9 +4,9 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: Database backup, backup, cloud backup, files backup, wordpress backup.
 Requires at least: 3.1+
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 5.6.20
-Stable tag: 7.10
+Stable tag: 7.11
 
 Create & Restore Database Backup easily on single click. Manual or automated backups (backup to Dropbox, Google drive, Amazon s3,FTP,Email).
 
@@ -77,6 +77,11 @@ Bug reports for WP Database Backup  are [welcomed on GitHub](https://github.com/
 4. Backup for WP plugin settings screen showing backup and log configuration options.
 
 == Changelog ==
+= 7.11 =
+* 19-05-2026
+* Improvement: Improved code according to latest PCP guildelines #144
+* Test: Tested for Wordpress 7.0 #143
+
 = 7.10 =
 * 17-03-2026
 * Fix: Backup list shows wrong or duplicated destinations #138
@@ -188,14 +193,6 @@ Bug reports for WP Database Backup  are [welcomed on GitHub](https://github.com/
 * Fixed: Auto Backup is not working for DropBox #58
 * Fixed: Plugin is not being deactivated in multisite #74
 * Improvement: readme txt improvements #22 #28
-
-= 6.6 =
-* 22-09-2023
-* Added: Support for background backup for plain permalink structure #67
-* Improvement: DB backup leads to fatal error for large tables #68
-* Added: Button to stop the background backups process. #62
-* Fixed: Error in php log and console #66
-* Compatibility: Tested with WordPress 6.3 #61
 
 Full changelog available [ at changelog.txt](https://plugins.svn.wordpress.org/wp-database-backup/trunk/changelog.txt)
 

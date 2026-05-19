@@ -1,11 +1,14 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 /**
  * Backup Complete filter for generate log
  *
  * @package wpdbbkp
  */
 
-add_action( 'wp_db_backup_completed', array( 'WPDBBackupLog', 'wp_db_backup_completed' ), 12 );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDBBackupLog', 'wp_db_backup_completed' ), 12 );
 
 /**
  * WPDBBackupLog Class.

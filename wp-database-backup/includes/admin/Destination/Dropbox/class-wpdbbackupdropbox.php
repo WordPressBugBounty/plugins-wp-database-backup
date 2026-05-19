@@ -1,11 +1,14 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 /**
  * Backup Complete filter for dropbox
  *
  * @package wpdbbkp
  */
 
-add_action( 'wp_db_backup_completed', array( 'WPDBBackupDropbox', 'wp_db_backup_completed' ) );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDBBackupDropbox', 'wp_db_backup_completed' ) );
 
 /**
  * Class for communicating with Dropbox API V2.
@@ -29,7 +32,7 @@ class WPDBBackupDropbox {
 			$dropbox->setOAuthTokens( $dropboxtoken );
 			$wpdb_dropbbox_dir = get_option( 'wpdb_dropbbox_dir' );
 			$wpdb_dropbbox_dir = ! empty( $wpdb_dropbbox_dir ) ? '/' . get_option( 'wpdb_dropbbox_dir' ) . '/' : '';
-			$response          = $dropbox->upload( $args[1], $wpdb_dropbbox_dir . apply_filters( 'wp_db_backup_dropbox_file_name', $args[0] ) );
+			$response          = $dropbox->upload( $args[1], $wpdb_dropbbox_dir . apply_filters( 'wpdbbkp_dropbox_file_name', $args[0] ) );
 			if ( $response ) {
 				$args[2] = $args[2] . '<br> '.esc_html__('Upload Database Backup on Dropbox', 'wpdbbkp').'';
 				$args[4] .= 'DropBox, ';

@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 add_action( 'wpdbbkp_backup_completed', array( 'WPDBFullBackupLog', 'wpdbbkp_backup_completed' ), 11 );
 
 /**

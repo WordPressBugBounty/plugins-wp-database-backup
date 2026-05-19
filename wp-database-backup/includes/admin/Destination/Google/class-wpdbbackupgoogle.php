@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-add_action( 'wp_db_backup_completed', array( 'WPDBBackupGoogle', 'wp_db_backup_completed' ) );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDBBackupGoogle', 'wp_db_backup_completed' ) );
 
 /**
  * WPDBBackupGoogle Class.

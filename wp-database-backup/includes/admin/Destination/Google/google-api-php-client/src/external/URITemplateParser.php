@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile -- third party library
 /*
 Copyright (c) 2010 Kevin M Burns Jr, http://kevburnsjr.com/
 

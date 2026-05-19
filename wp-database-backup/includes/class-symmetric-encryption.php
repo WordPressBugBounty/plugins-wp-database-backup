@@ -1,6 +1,8 @@
 <?php
-
-class SymmetricEncryption {
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
+class WPDBBackupSymmetricEncryption {
 
     private $cipher;
 

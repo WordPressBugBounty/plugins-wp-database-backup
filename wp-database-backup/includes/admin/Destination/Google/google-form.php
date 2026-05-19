@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ob_start();
 
-$update_msg = '';
+$wpdbbkp_update_msg = '';
 if ( isset( $_POST['wpdb_google_drive'] ) && 'Y' === $_POST['wpdb_google_drive'] ) {
 	// Validate that the contents of the form request came from the current site and not somewhere else added 21-08-15 V.3.4.
 	if ( ! isset( $_POST['wpdbbackup_update_google_setting'] ) ) {
@@ -19,47 +19,47 @@ if ( isset( $_POST['wpdb_google_drive'] ) && 'Y' === $_POST['wpdb_google_drive']
 	if ( ! wp_verify_nonce( wp_unslash( $_POST['wpdbbackup_update_google_setting'] ) , 'wpdbbackup-update-google-setting' ) ) { //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- using as nonce
 		wp_die( esc_html__('Invalid form data. form request came from the somewhere else not current site!','wpdbbkp') );
 	}
-	$client_id     = '';
-	$client_secret = '';
+	$wpdbbkp_client_id     = '';
+	$wpdbbkp_client_secret = '';
 	if ( isset( $_POST['Save'] ) && 'Save' === $_POST['Save'] ) {
 		if ( true === isset( $_POST['wpdb_dest_google_client_key'] ) ) {
-			$client_id = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_client_key'] ) );
+			$wpdbbkp_client_id = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_client_key'] ) );
 		}
 		if ( true === isset( $_POST['wpdb_dest_google_secret_key'] ) ) {
-			$client_secret = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_secret_key'] ) );
+			$wpdbbkp_client_secret = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_secret_key'] ) );
 		}
-		update_option( 'wpdb_dest_google_client_key', wp_db_filter_data( $client_id ) , false);
-		update_option( 'wpdb_dest_google_secret_key', wp_db_filter_data( $client_secret ) , false);
+		update_option( 'wpdb_dest_google_client_key', wpdbbkp_filter_data( $wpdbbkp_client_id ) , false);
+		update_option( 'wpdb_dest_google_secret_key', wpdbbkp_filter_data( $wpdbbkp_client_secret ) , false);
 	} elseif ( isset( $_POST['Submit'] ) && 'Allow Access' === $_POST['Submit'] ) {
 		// Save the posted value in the database.
 		if ( true === isset( $_POST['wpdb_dest_google_client_key'] ) ) {
-			$client_id = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_client_key'] ) );
+			$wpdbbkp_client_id = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_client_key'] ) );
 		}
 		if ( true === isset( $_POST['wpdb_dest_google_secret_key'] ) ) {
-			$client_secret = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_secret_key'] ) );
+			$wpdbbkp_client_secret = sanitize_text_field( wp_unslash( $_POST['wpdb_dest_google_secret_key'] ) );
 		}
-		update_option( 'wpdb_dest_google_client_key', wp_db_filter_data( $client_id ) , false);
-		update_option( 'wpdb_dest_google_secret_key', wp_db_filter_data( $client_secret ) , false);
+		update_option( 'wpdb_dest_google_client_key', wpdbbkp_filter_data( $wpdbbkp_client_id ) , false);
+		update_option( 'wpdb_dest_google_secret_key', wpdbbkp_filter_data( $wpdbbkp_client_secret ) , false);
 
 		require_once 'google-api-php-client/src/Google_Client.php';
 		require_once 'google-api-php-client/src/contrib/Google_DriveService.php';
 
-		$client = new Google_Client();
+		$wpdbbkp_client = new Google_Client();
 		// Get your credentials from the APIs Console.
-		$client->setClientId( $client_id );
-		$client->setClientSecret( $client_secret );
-		$client->setRedirectUri( site_url() . '/wp-admin/admin.php?page=wp-database-backup&action=auth' );
-		$client->setScopes( array( 'https://www.googleapis.com/auth/drive' ) );
+		$wpdbbkp_client->setClientId( $wpdbbkp_client_id );
+		$wpdbbkp_client->setClientSecret( $wpdbbkp_client_secret );
+		$wpdbbkp_client->setRedirectUri( site_url() . '/wp-admin/admin.php?page=wp-database-backup&action=auth' );
+		$wpdbbkp_client->setScopes( array( 'https://www.googleapis.com/auth/drive' ) );
 
-		$service = new Google_DriveService( $client );
+		$wpdbbkp_service = new Google_DriveService( $wpdbbkp_client );
 
-		$auth_url = $client->createAuthUrl();
+		$wpdbbkp_auth_url = $wpdbbkp_client->createAuthUrl();
 		
 		if ( isset( $_GET['code'] ) ) {
-			update_option( 'wpdb_dest_google_authCode', wp_db_filter_data( sanitize_text_field( wp_unslash( $_GET['code'] ) ) ), false );
+			update_option( 'wpdb_dest_google_authCode', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_GET['code'] ) ) ), false );
 		} else {
 			if ( isset( $_POST['wpdb_dest_google_client_key'] ) && ! empty( $_POST['wpdb_dest_google_client_key'] ) && isset( $_POST['wpdb_dest_google_secret_key'] ) && ! empty( $_POST['wpdb_dest_google_secret_key'] ) ) {
-				wp_redirect( filter_var( $auth_url, FILTER_SANITIZE_URL ) );
+				wp_safe_redirect( filter_var( $wpdbbkp_auth_url, FILTER_SANITIZE_URL ) );
 				exit;
 			}
 		}
@@ -70,11 +70,11 @@ if ( isset( $_POST['wpdb_google_drive'] ) && 'Y' === $_POST['wpdb_google_drive']
 	}
 
 	// Put a "settings updated" message on the screen.
-	$update_msg = '<div class="updated"><p><strong>'.esc_html__('Your google drive setting has been saved.', 'wpdbbkp').'</strong></p></div>';
+	$wpdbbkp_update_msg = '<div class="updated"><p><strong>'.esc_html__('Your google drive setting has been saved.', 'wpdbbkp').'</strong></p></div>';
 }
 if ( isset( $_GET['code'] ) ) {
-	update_option( 'wpdb_dest_google_authCode', wp_db_filter_data( sanitize_text_field( wp_unslash( $_GET['code'] ) ) ) , false);
-	$wpdbbkp_gdrive_authCode = wp_db_filter_data( sanitize_text_field( wp_unslash( $_GET['code'] ) ) );
+	update_option( 'wpdb_dest_google_authCode', wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_GET['code'] ) ) ) , false);
+	$wpdbbkp_gdrive_authCode = wpdbbkp_filter_data( sanitize_text_field( wp_unslash( $_GET['code'] ) ) );
 }
 
 $wpdb_dest_google_auth_code  = get_option( 'wpdb_dest_google_authCode' );
@@ -97,7 +97,7 @@ if(!empty($wpdb_dest_google_auth_code) && !empty($wpdb_dest_google_client_key) &
 	</div>
 	<div id="collapsegoogle" class="panel-collapse collapse">
 		<div class="panel-body">
-			<?php echo esc_html( $update_msg ); ?>
+			<?php echo esc_html( $wpdbbkp_update_msg ); ?>
 			<form  class="form-group" name="googledrive" method="post" action="">
 				<input type="hidden" name="wpdb_google_drive" value="Y">
 				<input name="wpdbbackup_update_google_setting" type="hidden" value="<?php echo esc_attr( wp_create_nonce( 'wpdbbackup-update-google-setting' ) ); ?>" />

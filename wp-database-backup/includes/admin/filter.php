@@ -1,11 +1,14 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} 
 /**
  * Backup Filters
  *
  * @package wpdbbkp
  */
 
-add_filter( 'upgrader_pre_install', 'wp_db_backup_upgrader_pre_install', 10, 2 );
+add_filter( 'upgrader_pre_install', 'wpdbbkp_upgrader_pre_install', 10, 2 );
 
 /**
  * Filter for upgrade theme or plugin.
@@ -14,7 +17,7 @@ add_filter( 'upgrader_pre_install', 'wp_db_backup_upgrader_pre_install', 10, 2 )
  * @param array $hook_extra - Extra arguments passed to hooked filters.
  * @return bool
  */
-function wp_db_backup_upgrader_pre_install( $response, $hook_extra ) {
+function wpdbbkp_upgrader_pre_install( $response, $hook_extra ) {
 	$wp_db_backup_enable_auto_upgrade = get_option( 'wp_db_backup_enable_auto_upgrade' );
 	if ( 1 === $wp_db_backup_enable_auto_upgrade ) {
 		$before_update_backup_obj = new wpdb_Admin();
@@ -29,7 +32,7 @@ function wp_db_backup_upgrader_pre_install( $response, $hook_extra ) {
  * @param string $string -  Input data.
  * @return string
  */
-function wp_db_filter_data( $string ) {
+function wpdbbkp_filter_data( $string ) {
 	$search  = array( 'animation-name', 'alert(', 'style=', 'onanimationstart' );
 	$replace = array( '', '', '', '' );
 	$result  = str_replace( $search, $replace, $string );

@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-add_action( 'wp_db_backup_completed', array( 'WPDatabaseBackupS3', 'wp_db_backup_completed' ) );
+add_action( 'wpdbbkp_db_backup_completed', array( 'WPDatabaseBackupS3', 'wp_db_backup_completed' ) );
 
 /**
  * WPDatabaseBackupS3 Class.
@@ -32,11 +32,11 @@ class WPDatabaseBackupS3 {
 					require_once 'S3.php';
 				}
 				// AWS access info.
-				if ( ! defined( 'AWSACCESSKEY' ) ) {
-					define( 'AWSACCESSKEY', get_option( 'wpdb_dest_amazon_s3_bucket_key' ) );
+				if ( ! defined( 'WPDBBKP_AWS_ACCESS_KEY' ) ) {
+					define( 'WPDBBKP_AWS_ACCESS_KEY', get_option( 'wpdb_dest_amazon_s3_bucket_key' ) );
 				}
-				if ( ! defined( 'AWSSECRETKEY' ) ) {
-					define( 'AWSSECRETKEY', get_option( 'wpdb_dest_amazon_s3_bucket_secret' ) );
+				if ( ! defined( 'WPDBBKP_AWS_SECRET_KEY' ) ) {
+					define( 'WPDBBKP_AWS_SECRET_KEY', get_option( 'wpdb_dest_amazon_s3_bucket_secret' ) );
 				}
 
 				// Check for CURL.
@@ -44,15 +44,15 @@ class WPDatabaseBackupS3 {
 					$message_error = 'No Curl';
 				}
 
-				$s3          = new S3( AWSACCESSKEY, AWSSECRETKEY );
-				$bucket_name = get_option( 'wpdb_dest_amazon_s3_bucket' );
-				$result      = $s3->listBuckets();
+				$wpdbbkp_s3          = new S3( WPDBBKP_AWS_ACCESS_KEY, WPDBBKP_AWS_SECRET_KEY );
+				$wpdbbkp_bucket_name = get_option( 'wpdb_dest_amazon_s3_bucket' );
+				$wpdbbkp_result      = $wpdbbkp_s3->listBuckets();
 				if ( get_option( 'wpdb_dest_amazon_s3_bucket' ) ) {
-					if ( true === in_array( get_option( 'wpdb_dest_amazon_s3_bucket' ), $result ) ) { // phpcs:ignore
-						if ( $s3->putObjectFile( $args[1], $bucket_name, baseName( $args[1] ), S3::ACL_PUBLIC_READ ) ) {
-							$args[2] = $args[2] . '<br> '.esc_html__('Upload Database Backup on s3 bucket','wpdbbkp') . $bucket_name;
+					if ( true === in_array( get_option( 'wpdb_dest_amazon_s3_bucket' ), $wpdbbkp_result ) ) { // phpcs:ignore
+						if ( $wpdbbkp_s3->putObjectFile( $args[1], $wpdbbkp_bucket_name, baseName( $args[1] ), S3::ACL_PUBLIC_READ ) ) {
+							$args[2] = $args[2] . '<br> '.esc_html__('Upload Database Backup on s3 bucket','wpdbbkp') . $wpdbbkp_bucket_name;
 						} else {
-							$args[2] = $args[2] . '<br>'.esc_html__('Failed to upload Database Backup on s3 bucket','wpdbbkp') . $bucket_name;
+							$args[2] = $args[2] . '<br>'.esc_html__('Failed to upload Database Backup on s3 bucket','wpdbbkp') . $wpdbbkp_bucket_name;
 						}
 					} else {
 						$args[2] = $args[2] . '<br>'.esc_html__('Invalid bucket name or AWS details','wpdbbkp');

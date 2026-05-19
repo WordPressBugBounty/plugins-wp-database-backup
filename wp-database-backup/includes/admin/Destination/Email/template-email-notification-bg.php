@@ -8,12 +8,12 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
-$unsub_token = get_option('wpdbbkp_unsubscribe_token',false);
-if(!$unsub_token){
-    $unsub_token = hash("sha256", wp_rand(999,99999999));
-    update_option('wpdbbkp_unsubscribe_token',$unsub_token ,false);
+$wpdbbkp_unsub_token = get_option('wpdbbkp_unsubscribe_token',false);
+if(!$wpdbbkp_unsub_token){
+    $wpdbbkp_unsub_token = hash("sha256", wp_rand(999,99999999));
+    update_option('wpdbbkp_unsubscribe_token',$wpdbbkp_unsub_token ,false);
 }
-$message = '<div bgcolor="#e3e3e3" style="font-family:Arial;color:#707070;font-size:12px;background-color:#e3e3e3;margin:0;padding:0px">
+$wpdbbkp_message = '<div bgcolor="#e3e3e3" style="font-family:Arial;color:#707070;font-size:12px;background-color:#e3e3e3;margin:0;padding:0px">
 <div align="center" style="font-family:Arial;width:600px;background-color:#ffffff;margin:0 auto;padding:0px">
     <div style="font-family:Arial;border-bottom-color:#cccccc;border-bottom-width:1px;border-bottom-style:solid;background-color:#eee;margin:0px;padding:4px">
        <a href="https://backupforwp.com/"><img src="'. esc_url( WPDB_PLUGIN_URL.'/assets/images/wp-database-backup.png') /* phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage */ .'" alt="Backup for WP" /></a>
@@ -72,7 +72,7 @@ $message = '<div bgcolor="#e3e3e3" style="font-family:Arial;color:#707070;font-s
 
     <div style="font-family:Arial;border-top-width:1px;border-top-color:#cccccc;border-top-style:solid;background-color:#eee;margin:0px;padding:10px">
         '.esc_html__('You\'re receiving this email because you have active Email Notification on your site','wpdbbkp').'(' . esc_url($site_url) . ').
-		<br>'.esc_html__('If you don\'t like to receive a Email Notification then','wpdbbkp').' <a href="'.esc_url(admin_url('admin-ajax.php?action=wpdbbkp_email_unsubscribe&unsubscribe_token='.esc_attr($unsub_token))).'">'.esc_html__('Click Here to unsubcribe','wpdbbkp').'</a>.
+		<br>'.esc_html__('If you don\'t like to receive a Email Notification then','wpdbbkp').' <a href="'.esc_url(admin_url('admin-ajax.php?action=wpdbbkp_email_unsubscribe&unsubscribe_token='.esc_attr($wpdbbkp_unsub_token))).'">'.esc_html__('Click Here to unsubcribe','wpdbbkp').'</a>.
 		<div class="yj6qo"></div><div class="adL">
     </div></div><div class="adL">
 </div></div><div class="adL">
