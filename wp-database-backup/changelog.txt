@@ -1,7 +1,12 @@
+= 7.16 =
+* 24-11-2026
+* New: BFCM 2026 promo banner
+* Improvement: Feedback form improvements
+
 = 7.15 =
 * 16-11-2026
-* Fix: Direct access to the backup folder is denied on Apache and IIS (reported by Patchstack)
-* Fix: The FTP debug log is no longer written into backup folder (reported by Patchstack)
+* Fix: Direct access to the backup folder is denied on Apache and IIS.
+* Fix: The FTP debug log is no longer written into backup folder.
 
 = 7.14 =
 * 10-11-2026
